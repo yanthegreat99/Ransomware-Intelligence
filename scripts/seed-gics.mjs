@@ -1,19 +1,19 @@
 import { createRequire } from "node:module";
+import { db } from "./db.mjs";
 
 const require = createRequire(import.meta.url);
-const { PrismaClient } = require("@prisma/client");
 const taxonomy = require("../gics-taxonomy-april-2026.json");
-const prisma = new PrismaClient();
 
 try {
   for (const row of taxonomy) {
-    await prisma.gicsTaxonomy.upsert({
-      where: { subIndustryCode: row.subIndustryCode },
-      update: row,
-      create: row,
-    });
+    await db.orm.public.GicsTaxonomy.where({ subIndustryCode: row.subIndustryCode })
+      .upsert({
+        update: row,
+        create: row,
+        conflictOn: { subIndustryCode: row.subIndustryCode },
+      });
   }
   console.log(JSON.stringify({ seeded: taxonomy.length }));
 } finally {
-  await prisma.$disconnect();
+  await db.close();
 }

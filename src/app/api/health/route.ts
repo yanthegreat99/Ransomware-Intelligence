@@ -1,30 +1,27 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    const db = getDb();
     const [victims, disclosures, groups, runs, sourceDisclosures] = await Promise.all([
-      prisma.canonicalVictim.count(),
-      prisma.sourceDisclosure.count(),
-      prisma.ransomwareGroup.count(),
-      prisma.ingestionRun.count(),
-      prisma.sourceDisclosure.groupBy({
-        by: ["sourceName"],
-        _count: { _all: true },
-        orderBy: { _count: { sourceName: "desc" } },
-      }),
+      db.orm.public.CanonicalVictim.aggregate((aggregate) => ({ total: aggregate.count() })),
+      db.orm.public.SourceDisclosure.aggregate((aggregate) => ({ total: aggregate.count() })),
+      db.orm.public.RansomwareGroup.aggregate((aggregate) => ({ total: aggregate.count() })),
+      db.orm.public.IngestionRun.aggregate((aggregate) => ({ total: aggregate.count() })),
+      db.orm.public.SourceDisclosure.groupBy("sourceName")
+        .aggregate((aggregate) => ({ count: aggregate.count() })),
     ]);
     return NextResponse.json({
       status: "healthy",
       database: "connected",
       counts: {
-        victims,
-        disclosures,
-        groups,
-        ingestionRuns: runs,
+        victims: victims.total,
+        disclosures: disclosures.total,
+        groups: groups.total,
+        ingestionRuns: runs.total,
         sourceDisclosures: Object.fromEntries(
-          sourceDisclosures.map((row) => [row.sourceName, row._count._all]),
+          sourceDisclosures.map((row) => [row.sourceName, row.count]),
         ),
       },
     });

@@ -1,10 +1,10 @@
 // @ts-check
 import nextjs from "@prisma/composer/nextjs";
 import { compute } from "@prisma/composer-prisma-cloud";
-import { postgres, dataContract } from "@prisma/composer-prisma-cloud/orm";
+import { postgres } from "@prisma/composer-prisma-cloud/orm";
 import { secretString } from "@prisma/composer/zod";
 import { z } from "zod";
-import contractJson from "./src/prisma/contract.json" with { type: "json" };
+import { contract } from "./src/prisma/contract.mjs";
 
 const inputSchema = z.object({
   analystAccessSecret: secretString(),
@@ -21,6 +21,6 @@ const inputSchema = z.object({
 export default compute({
   name: "ransomware-intelligence-app",
   input: inputSchema,
-  deps: { db: postgres(dataContract(contractJson)) },
+  deps: { db: postgres(contract) },
   build: nextjs({ module: import.meta.url, appDir: "." }),
 });

@@ -1,12 +1,12 @@
 // @ts-check
 import { module } from "@prisma/composer";
-import { postgres, dataContract } from "@prisma/composer-prisma-cloud/orm";
+import { postgres } from "@prisma/composer-prisma-cloud/orm";
 import { envSecret } from "@prisma/composer-prisma-cloud";
-import contractJson from "./src/prisma/contract.json" with { type: "json" };
+import { contract } from "./src/prisma/contract.mjs";
 import ransomwareIntelligenceAppService from "./service.mjs";
 
 export default module("ransomware-intelligence", ({ provision }) => {
-  const database = provision(postgres({ name: "database", contract: dataContract(contractJson), config: "./prisma.config.ts" }));
+  const database = provision(postgres({ name: "database", contract, config: "./prisma.config.ts" }));
   provision(ransomwareIntelligenceAppService, {
     id: "ransomwareintelligenceapp",
     deps: { db: database },

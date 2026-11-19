@@ -1,10 +1,6 @@
-import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
-
-const require = createRequire(import.meta.url);
-require("dotenv").config({ path: ".env.local" });
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+import { and } from "@prisma/orm-postgres/orm-client";
+import { db } from "./db.mjs";
 
 function key(value) {
   return String(value)
@@ -75,18 +71,15 @@ function profileSnapshot(group) {
 }
 
 async function mergeIntoTarget(source, canonicalName) {
-  await prisma.$transaction(async (tx) => {
-    const currentSource = await tx.ransomwareGroup.findUnique({ where: { id: source.id } });
+  await db.transaction(async (tx) => {
+    const currentSource = await tx.orm.public.RansomwareGroup.first({ id: source.id });
     if (!currentSource) return;
-    const target = await tx.ransomwareGroup.findUnique({ where: { name: canonicalName } });
+    const target = await tx.orm.public.RansomwareGroup.first({ name: canonicalName });
 
     if (!target) {
-      await tx.ransomwareGroup.update({
-        where: { id: currentSource.id },
-        data: {
+      await tx.orm.public.RansomwareGroup.where({ id: currentSource.id }).update({
           name: canonicalName,
-          aliases: Array.from(new Set([...currentSource.aliases, currentSource.name])),
-        },
+          aliases: Array.from(new Set([...(currentSource.aliases ?? []), currentSource.name])),
       });
       return;
     }
@@ -99,8 +92,8 @@ async function mergeIntoTarget(source, canonicalName) {
     const mergedSourceRefs = uniqueJson(targetRefs, sourceRefs, archivedSource);
     const data = {
       aliases: Array.from(new Set([
-        ...target.aliases,
-        ...currentSource.aliases,
+        ...(target.aliases ?? []),
+        ...(currentSource.aliases ?? []),
         currentSource.name,
       ])),
       description: target.description ?? currentSource.description,
@@ -109,41 +102,45 @@ async function mergeIntoTarget(source, canonicalName) {
       operationalStatus: target.operationalStatus === "UNKNOWN"
         ? currentSource.operationalStatus
         : target.operationalStatus,
-      leakSiteUrls: Array.from(new Set([...target.leakSiteUrls, ...currentSource.leakSiteUrls])),
+      leakSiteUrls: Array.from(new Set([...(target.leakSiteUrls ?? []), ...(currentSource.leakSiteUrls ?? [])])),
       sourceRefs: mergedSourceRefs,
       relationships: uniqueJson(target.relationships, currentSource.relationships),
       parserStatus: target.parserStatus ?? currentSource.parserStatus,
       uptime30d: target.uptime30d ?? currentSource.uptime30d,
-      contactEmails: Array.from(new Set([...target.contactEmails, ...currentSource.contactEmails])),
-      sessionIds: Array.from(new Set([...target.sessionIds, ...currentSource.sessionIds])),
+      contactEmails: Array.from(new Set([...(target.contactEmails ?? []), ...(currentSource.contactEmails ?? [])])),
+      sessionIds: Array.from(new Set([...(target.sessionIds ?? []), ...(currentSource.sessionIds ?? [])])),
       knownLocations: uniqueJson(target.knownLocations, currentSource.knownLocations),
       profileUrls: mergeObject(target.profileUrls, currentSource.profileUrls),
       profileUpdatedAt: dateMaximum(target.profileUpdatedAt, currentSource.profileUpdatedAt),
     };
 
-    await tx.canonicalVictim.updateMany({
-      where: { ransomwareGroupId: currentSource.id },
-      data: { ransomwareGroupId: target.id },
-    });
-    await tx.sourceDisclosure.updateMany({
-      where: { ransomwareGroupId: currentSource.id },
-      data: { ransomwareGroupId: target.id },
-    });
-    await tx.ransomwareGroup.update({ where: { id: target.id }, data });
-    await tx.ransomwareGroup.delete({ where: { id: currentSource.id } });
+    await tx.orm.public.CanonicalVictim.where({ ransomwareGroupId: currentSource.id })
+      .updateAll({ ransomwareGroupId: target.id });
+    await tx.orm.public.SourceDisclosure.where({ ransomwareGroupId: currentSource.id })
+      .updateAll({ ransomwareGroupId: target.id });
+    await tx.orm.public.RansomwareGroup.where({ id: target.id }).update(data);
+    await tx.orm.public.RansomwareGroup.where({ id: currentSource.id }).delete();
   });
 }
 
 try {
   const apply = process.argv.includes("--apply");
-  const groups = await prisma.ransomwareGroup.findMany({
-    include: { _count: { select: { victims: true, disclosures: true } } },
-    orderBy: { name: "asc" },
-  });
-  const disclosures = await prisma.sourceDisclosure.findMany({
-    select: { ransomwareGroupId: true, sourceName: true, originalGroupName: true },
-    where: { ransomwareGroupId: { not: null }, originalGroupName: { not: null } },
-  });
+  const groupRows = await db.orm.public.RansomwareGroup
+    .include("victims", (victims) => victims.count())
+    .include("disclosures", (disclosures) => disclosures.count())
+    .orderBy((group) => group.name.asc())
+    .all();
+  const groups = groupRows.map(({ victims, disclosures, ...group }) => ({
+    ...group,
+    _count: { victims, disclosures },
+    disclosures: [],
+  }));
+  const disclosures = await db.orm.public.SourceDisclosure
+    .where((disclosure) =>
+      and(disclosure.ransomwareGroupId.isNotNull(), disclosure.originalGroupName.isNotNull()),
+    )
+    .select("ransomwareGroupId", "sourceName", "originalGroupName")
+    .all();
   const disclosuresByGroup = new Map();
   for (const disclosure of disclosures) {
     const bucket = disclosuresByGroup.get(disclosure.ransomwareGroupId) ?? [];
@@ -218,5 +215,5 @@ try {
     }
   }
 } finally {
-  await prisma.$disconnect();
+  await db.close();
 }

@@ -4,13 +4,11 @@ A Next.js and PostgreSQL threat-intelligence application for canonical ransomwar
 
 ## Deployment
 
-The application is designed for Vercel with PostgreSQL (Supabase or another managed PostgreSQL provider). GitHub Pages cannot run the database-backed API or ingestion jobs.
+Deploy the GitHub-connected project through Prisma Composer in Prisma Console. Configure `DATABASE_URL` and the required application secrets in the Composer environment; do not put credentials in the repository.
 
-1. Create a PostgreSQL database and set `DATABASE_URL`.
-2. Run `npm install`.
-3. Run `npm run db:generate`.
-4. Run `npx prisma migrate deploy`.
-5. Deploy to Vercel.
+The repository includes an initial migration from an empty database. Do not apply it to a database that already contains this application's tables or data until that database has been safely adopted into the migration history. Back up existing data before any migration work.
+
+Install dependencies with `npm install`. Prisma ORM 8 generates the application contract with `npx prisma contract emit`; schema changes also need a reviewed migration in `migrations/app` before deployment. Prisma Composer applies the committed migration history during deployment.
 
 ## Local frontend
 
@@ -30,6 +28,7 @@ Open:
 - Analyst console: `http://localhost:3000/admin`
 
 Set `ANALYST_ACCESS_SECRET` in `.env.local` to enable analyst sign-in. Its value is used as the password and is never sent to the browser.
+Local database scripts load `DATABASE_URL` from `.env.local` (or `.env`) and close their Prisma ORM 8 client when finished.
 
 ## Environment variables
 

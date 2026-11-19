@@ -1,7 +1,7 @@
+import { db } from "./db.mjs";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { PrismaClient } = require("@prisma/client");
 const countries = require("i18n-iso-countries");
 const enLocale = require("../node_modules/i18n-iso-countries/langs/en.json");
 
@@ -37,11 +37,8 @@ function normalize(value) {
   return name && alpha3 ? { name, alpha2, alpha3 } : null;
 }
 
-const prisma = new PrismaClient();
 try {
-  const victims = await prisma.canonicalVictim.findMany({
-    select: { id:true, country:true, countryCode:true },
-  });
+  const victims = await db.orm.public.CanonicalVictim.select("id", "country", "countryCode").all();
   let corrected = 0;
   let unknown = 0;
   for (const victim of victims) {
@@ -51,14 +48,12 @@ try {
       continue;
     }
     if (victim.country !== normalized.name || victim.countryCode !== normalized.alpha2) {
-      await prisma.canonicalVictim.update({
-        where: { id:victim.id },
-        data: { country:normalized.name, countryCode:normalized.alpha2 },
-      });
+      await db.orm.public.CanonicalVictim.where({ id: victim.id })
+        .update({ country: normalized.name, countryCode: normalized.alpha2 });
       corrected++;
     }
   }
   console.log(JSON.stringify({ total:victims.length, corrected, unknown }));
 } finally {
-  await prisma.$disconnect();
+  await db.close();
 }

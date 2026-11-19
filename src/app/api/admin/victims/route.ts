@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { asJson, getDb } from "@/lib/prisma";
 import { normalizeDomain, normalizeName } from "@/lib/intelligence";
 import { authorizeAdminRequest } from "@/lib/admin-auth";
 import { normalizeCountry } from "@/lib/countries";
@@ -76,25 +75,25 @@ export async function POST(request: NextRequest) {
 
   try {
     const input = parsed.data;
-    const result = await prisma.$transaction(async (tx) => {
+    const db = getDb();
+    const result = await db.transaction(async (tx) => {
       let ransomwareGroupId: string | undefined;
       if (input.ransomwareGroup) {
-        const group = await tx.ransomwareGroup.upsert({
-          where: { name: input.ransomwareGroup },
-          update: { lastObserved: new Date(input.firstReportedAt) },
+        const group = await tx.orm.public.RansomwareGroup.upsert({
           create: {
             name: input.ransomwareGroup,
             firstObserved: new Date(input.firstReportedAt),
             lastObserved: new Date(input.firstReportedAt),
           },
+          update: { lastObserved: new Date(input.firstReportedAt) },
+          conflictOn: { name: input.ransomwareGroup },
         });
         ransomwareGroupId = group.id;
       }
 
       const domain = normalizeDomain(input.domain);
       const country = normalizeCountry(input.country);
-      const victim = await tx.canonicalVictim.create({
-        data: {
+      const victim = await tx.orm.public.CanonicalVictim.create({
           name: input.name,
           normalizedName: normalizeName(input.name),
           domain,
@@ -112,11 +111,9 @@ export async function POST(request: NextRequest) {
           confidenceScore: input.confidenceScore ?? 0,
           duplicateStatus: "UNIQUE_VICTIM",
           aliases: input.aliases ?? [],
-        },
       });
 
-      await tx.victimEdit.create({
-        data: {
+      await tx.orm.public.VictimEdit.create({
           victimId: victim.id,
           field: "manualCreation",
           oldValue: {},
@@ -124,16 +121,14 @@ export async function POST(request: NextRequest) {
             name: victim.name,
             domain: victim.domain,
             country: victim.country,
-            ransomwareGroupId,
+            ransomwareGroupId: ransomwareGroupId ?? null,
           },
           analyst: input.analyst,
           reason: input.reason,
-        },
       });
 
       if (input.sourceName || input.sourceUrl || input.sourceIdentifier) {
-        await tx.sourceDisclosure.create({
-          data: {
+        await tx.orm.public.SourceDisclosure.create({
             sourceName: input.sourceName ?? "Manual analyst entry",
             sourceIdentifier: input.sourceIdentifier,
             sourceUrl: input.sourceUrl,
@@ -141,11 +136,10 @@ export async function POST(request: NextRequest) {
             originalGroupName: input.ransomwareGroup,
             originalCountry: input.country,
             publishedAt: new Date(input.firstReportedAt),
-            rawData: { manualEntry: true },
-            normalizedData: input as unknown as Prisma.InputJsonValue,
+            rawData: asJson({ manualEntry: true }),
+            normalizedData: asJson(input),
             canonicalVictimId: victim.id,
             ransomwareGroupId,
-          },
         });
       }
       return victim;
@@ -163,65 +157,106 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const input = parsed.data;
-    const result = await prisma.$transaction(async (tx) => {
-      const existing = await tx.canonicalVictim.findUnique({ where: { id: input.victimId } });
+    const db = getDb();
+    const result = await db.transaction(async (tx) => {
+      const existing = await tx.orm.public.CanonicalVictim.first({ id: input.victimId });
       if (!existing) throw new Error("Victim not found");
 
-      const fields = [
-        "name","domain","country","region","description","organisationType","ransomwareGroup",
-        "verificationStatus","legitimacyStatus","incidentStatus","confidenceScore","aliases",
-      ] as const;
       const oldValue: Record<string, unknown> = {};
       const newValue: Record<string, unknown> = {};
-      const data: Record<string, unknown> = {};
-
-      for (const field of fields) {
-        if (!Object.prototype.hasOwnProperty.call(input, field)) continue;
-        let value = input[field as keyof typeof input];
-        if (field === "domain" && typeof value === "string") value = normalizeDomain(value);
-        if (field === "country" && typeof value === "string") {
-          const country = normalizeCountry(value);
-          if (country) {
-            data.countryCode = country.alpha2;
-            value = country.name;
-          }
-        }
-        if (field === "name" && typeof value === "string") {
-          data.normalizedName = normalizeName(value);
-        }
-        if (field === "ransomwareGroup") {
-          if (value === null) {
-            data.ransomwareGroupId = null;
-          } else if (typeof value === "string") {
-            const group = await tx.ransomwareGroup.upsert({
-              where: { name: value },
-              update: {},
-              create: { name: value },
-            });
-            data.ransomwareGroupId = group.id;
-          }
-          continue;
-        }
-        if (field === "domain") data.normalizedDomain = typeof value === "string" ? normalizeDomain(value) : null;
-        oldValue[field] = existing[field as keyof typeof existing];
+      const data: {
+        name?: string;
+        normalizedName?: string;
+        domain?: string | null;
+        normalizedDomain?: string | null;
+        country?: string | null;
+        countryCode?: string | null;
+        region?: string | null;
+        description?: string | null;
+        organisationType?: string | null;
+        ransomwareGroupId?: string | null;
+        verificationStatus?: z.infer<typeof verificationEnum>;
+        legitimacyStatus?: string;
+        incidentStatus?: string;
+        confidenceScore?: number;
+        aliases?: string[];
+      } = {};
+      const recordChange = (field: string, old: unknown, value: unknown) => {
+        oldValue[field] = old;
         newValue[field] = value;
-        data[field] = value;
+      };
+
+      if (Object.prototype.hasOwnProperty.call(input, "name")) {
+        data.name = input.name!;
+        data.normalizedName = normalizeName(input.name!);
+        recordChange("name", existing.name, input.name);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "domain")) {
+        data.domain = normalizeDomain(input.domain);
+        data.normalizedDomain = data.domain;
+        recordChange("domain", existing.domain, data.domain);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "country")) {
+        const country = normalizeCountry(input.country);
+        data.country = country?.name ?? input.country ?? null;
+        data.countryCode = country?.alpha2 ?? null;
+        recordChange("country", existing.country, data.country);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "region")) {
+        data.region = input.region;
+        recordChange("region", existing.region, input.region);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "description")) {
+        data.description = input.description;
+        recordChange("description", existing.description, input.description);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "organisationType")) {
+        data.organisationType = input.organisationType;
+        recordChange("organisationType", existing.organisationType, input.organisationType);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "ransomwareGroup")) {
+        if (input.ransomwareGroup === null) {
+          data.ransomwareGroupId = null;
+        } else if (input.ransomwareGroup) {
+          const group = await tx.orm.public.RansomwareGroup.upsert({
+            create: { name: input.ransomwareGroup },
+            update: {},
+            conflictOn: { name: input.ransomwareGroup },
+          });
+          data.ransomwareGroupId = group.id;
+        }
+        recordChange("ransomwareGroup", existing.ransomwareGroupId, input.ransomwareGroup);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "verificationStatus")) {
+        data.verificationStatus = input.verificationStatus;
+        recordChange("verificationStatus", existing.verificationStatus, input.verificationStatus);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "legitimacyStatus")) {
+        data.legitimacyStatus = input.legitimacyStatus;
+        recordChange("legitimacyStatus", existing.legitimacyStatus, input.legitimacyStatus);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "incidentStatus")) {
+        data.incidentStatus = input.incidentStatus;
+        recordChange("incidentStatus", existing.incidentStatus, input.incidentStatus);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "confidenceScore")) {
+        data.confidenceScore = input.confidenceScore;
+        recordChange("confidenceScore", existing.confidenceScore, input.confidenceScore);
+      }
+      if (Object.prototype.hasOwnProperty.call(input, "aliases")) {
+        data.aliases = input.aliases;
+        recordChange("aliases", existing.aliases, input.aliases);
       }
 
-      await tx.victimEdit.create({
-        data: {
+      await tx.orm.public.VictimEdit.create({
           victimId: existing.id,
           field: "analystEdit",
-          oldValue: oldValue as Prisma.InputJsonValue,
-          newValue: newValue as Prisma.InputJsonValue,
+          oldValue: asJson(oldValue),
+          newValue: asJson(newValue),
           analyst: input.analyst,
           reason: input.reason,
-        },
       });
-      return tx.canonicalVictim.update({
-        where: { id: existing.id },
-        data: data as Prisma.CanonicalVictimUpdateInput,
-      });
+      return tx.orm.public.CanonicalVictim.where({ id: existing.id }).update(data);
     });
     return NextResponse.json({ victim: result });
   } catch (error) {

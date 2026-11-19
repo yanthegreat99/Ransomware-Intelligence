@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
 import { fetchWithRetry } from "@/lib/http";
 import { authorizeAdminRequest } from "@/lib/admin-auth";
 
@@ -9,7 +9,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
   }
   const { id } = await context.params;
   try {
-    const group = await prisma.ransomwareGroup.findUnique({ where: { id } });
+    const db = getDb();
+    const group = await db.orm.public.RansomwareGroup.first({ id });
     if (!group) return NextResponse.json({ error: "Ransomware group not found" }, { status: 404 });
 
     const slug = encodeURIComponent(group.name.toLowerCase().replace(/\s+/g, ""));
@@ -49,11 +50,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       .map((location) => location.slug)
       .filter((url): url is string => Boolean(url));
 
-    const updated = await prisma.ransomwareGroup.update({
-      where: { id },
-      data: {
+    const updated = await db.orm.public.RansomwareGroup.where({ id }).update({
         aliases: Array.from(new Set([
-          ...group.aliases,
+          ...(group.aliases ?? []),
           ...(Array.isArray(profile.altname) ? profile.altname : typeof profile.altname === "string" ? [profile.altname] : []),
         ])),
         parserStatus: profile.captcha === true ? "Captcha" : "Enabled",
@@ -64,7 +63,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
           api: `https://www.ransomlook.io/api/group/${slug}`,
         },
         profileUpdatedAt: new Date(),
-      },
     });
     return NextResponse.json({ group: updated, locations });
   } catch (error) {

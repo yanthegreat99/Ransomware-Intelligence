@@ -1,7 +1,9 @@
 import service from "../../service.mjs";
+import type { Client, PostgresContract } from "@prisma/composer-prisma-cloud/orm";
+import type { Contract } from "../prisma/contract-types";
 
 /** The Prisma ORM 8 client, wired by the app's Composer service. Call inside pages and route handlers. */
-export function getDb() {
+export function getDb(): Client<PostgresContract<Contract>> {
   return service.load().db.client;
 }
 

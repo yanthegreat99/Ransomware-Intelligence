@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
+import { or } from "@prisma/orm-postgres/orm-client";
 import { normalizeName } from "@/lib/intelligence";
 import { normalizeCountry } from "@/lib/countries";
+
+type VerificationStatus = "VERIFIED" | "PARTIALLY_VERIFIED" | "UNVERIFIED" | "DISPUTED" | "REMOVED" | "UNDER_REVIEW";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,54 +21,58 @@ export async function GET(request: NextRequest) {
     const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") ?? 25)));
     const skip = (page - 1) * pageSize;
 
-    const where: Prisma.CanonicalVictimWhereInput = {};
+    const db = getDb();
+    let query = db.orm.public.CanonicalVictim;
     if (q) {
-      where.OR = [
-        { name: { contains: q, mode: "insensitive" } },
-        { normalizedName: { contains: normalizeName(q), mode: "insensitive" } },
-        { domain: { contains: q, mode: "insensitive" } },
-      ];
+      const normalizedName = normalizeName(q);
+      query = query.where((victim) => or(
+        victim.name.ilike(`%${q}%`),
+        victim.normalizedName.ilike(`%${normalizedName}%`),
+        victim.domain.ilike(`%${q}%`),
+      ));
     }
     if (country) {
       const normalized = normalizeCountry(country);
-      where.OR = [
-        ...(where.OR ?? []),
-        ...(normalized ? [
-          { countryCode: normalized.alpha2 },
-          { country: normalized.name },
-        ] : [{ country: { contains: country, mode: "insensitive" as const } }]),
-      ];
+      query = query.where((victim) => normalized
+        ? or(victim.countryCode.eq(normalized.alpha2), victim.country.eq(normalized.name))
+        : victim.country.ilike(`%${country}%`));
     }
-    if (verification) where.verificationStatus = verification as Prisma.EnumVerificationStatusFilter;
-    if (industry) where.gicsSectorName = industry;
-    if (from || to) {
-      where.firstReportedAt = {
-        ...(from ? { gte: new Date(from) } : {}),
-        ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}),
-      };
+    if (verification && !["VERIFIED", "PARTIALLY_VERIFIED", "UNVERIFIED", "DISPUTED", "REMOVED", "UNDER_REVIEW"].includes(verification)) {
+      return NextResponse.json({ error: "Invalid verification status" }, { status: 400 });
     }
+    if (verification) {
+      query = query.where((victim) =>
+        victim.verificationStatus.eq(verification as VerificationStatus),
+      );
+    }
+    if (industry) query = query.where({ gicsSectorName: industry });
+    if (from) query = query.where((victim) => victim.firstReportedAt.gte(new Date(from)));
+    if (to) query = query.where((victim) => victim.firstReportedAt.lte(new Date(`${to}T23:59:59.999Z`)));
     if (group) {
-      where.ransomwareGroup = { name: { contains: group, mode: "insensitive" } };
+      const groups = await db.orm.public.RansomwareGroup
+        .where((ransomwareGroup) => ransomwareGroup.name.ilike(`%${group}%`))
+        .select("id")
+        .all();
+      query = query.where((victim) =>
+        victim.ransomwareGroupId.in(groups.map((ransomwareGroup) => ransomwareGroup.id)),
+      );
     }
-
-    const orderBy =
-      sort === "name"
-        ? { name: "asc" as const }
-        : sort === "oldest"
-          ? { firstReportedAt: "asc" as const }
-          : sort === "updated"
-            ? { lastUpdatedAt: "desc" as const }
-            : { firstReportedAt: "desc" as const };
 
     const [items, total] = await Promise.all([
-      prisma.canonicalVictim.findMany({
-        where,
-        include: { ransomwareGroup: true, disclosures: { select: { sourceName: true, sourceUrl: true } } },
-        orderBy,
-        skip,
-        take: pageSize,
-      }),
-      prisma.canonicalVictim.count({ where }),
+      query
+        .include("ransomwareGroup")
+        .include("disclosures", (disclosures) => disclosures.select("sourceName", "sourceUrl"))
+        .orderBy(sort === "name"
+          ? (victim) => victim.name.asc()
+          : sort === "oldest"
+            ? (victim) => victim.firstReportedAt.asc()
+            : sort === "updated"
+              ? (victim) => victim.lastUpdatedAt.desc()
+              : (victim) => victim.firstReportedAt.desc())
+        .offset(skip)
+        .limit(pageSize)
+        .all(),
+      query.aggregate((aggregate) => ({ total: aggregate.count() })).then((result) => result.total),
     ]);
     if (searchParams.get("format") === "csv") {
       const escape = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
