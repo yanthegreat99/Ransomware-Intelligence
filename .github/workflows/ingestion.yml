@@ -1,0 +1,25 @@
+name: Scheduled ingestion
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: ransomware-ingestion
+      cancel-in-progress: false
+    steps:
+      - name: Trigger configured ingestion endpoint
+        env:
+          INGESTION_URL: ${{ secrets.INGESTION_URL }}
+          INGESTION_JOB_SECRET: ${{ secrets.INGESTION_JOB_SECRET }}
+        run: |
+          test -n "$INGESTION_URL"
+          curl --fail-with-body --show-error --retry 3 --retry-delay 30 \
+            -X POST "$INGESTION_URL/api/ingest" \
+            -H "Authorization: Bearer $INGESTION_JOB_SECRET" \
+            -H "Content-Type: application/json"

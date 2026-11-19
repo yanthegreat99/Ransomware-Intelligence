@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VerificationStatus {
+  VERIFIED
+  PARTIALLY_VERIFIED
+  UNVERIFIED
+  DISPUTED
+  REMOVED
+  UNDER_REVIEW
+}
+
+enum DuplicateStatus {
+  CONFIRMED_DUPLICATE
+  POTENTIAL_DUPLICATE
+  UNIQUE_VICTIM
+}
+
+enum ConfidenceCategory {
+  HIGH
+  MEDIUM
+  LOW
+  UNCLASSIFIED
+}
+
+enum IngestionStatus {
+  SUCCESS
+  PARTIAL
+  FAILED
+  RUNNING
+}
+
+model RansomwareGroup {
+  id             String    @id @default(cuid())
+  name           String    @unique
+  aliases        String[]
+  description    String?
+  firstObserved  DateTime?
+  lastObserved   DateTime?
+  operationalStatus String @default("UNKNOWN")
+  leakSiteUrls   String[]
+  sourceRefs     Json      @default("[]")
+  relationships  Json      @default("[]")
+  parserStatus   String?
+  uptime30d      Int?
+  contactEmails  String[] @default([])
+  sessionIds     String[] @default([])
+  knownLocations Json @default("[]")
+  profileUrls    Json @default("{}")
+  profileUpdatedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  victims        CanonicalVictim[]
+  disclosures    SourceDisclosure[]
+
+  @@index([name])
+}
+
+model CanonicalVictim {
+  id                   String             @id @default(cuid())
+  name                 String
+  normalizedName       String
+  domain               String?
+  normalizedDomain     String?
+  targetedDomain       String?
+  targetedDomainNormalized String?
+  country              String?
+  countryCode          String?
+  region               String?
+  description          String?
+  organisationType     String?
+  ransomwareGroupId    String?
+  ransomwareGroup      RansomwareGroup?   @relation(fields: [ransomwareGroupId], references: [id])
+  firstReportedAt      DateTime
+  lastUpdatedAt        DateTime           @updatedAt
+  verificationStatus   VerificationStatus @default(UNVERIFIED)
+  legitimacyStatus     String             @default("UNKNOWN")
+  incidentStatus       String             @default("UNVERIFIED_CLAIM")
+  duplicateStatus      DuplicateStatus    @default(UNIQUE_VICTIM)
+  confidenceScore      Int                @default(0)
+  lastCheckedAt        DateTime?
+  gicsSectorCode       String?
+  gicsSectorName       String?
+  gicsIndustryGroupCode String?
+  gicsIndustryGroupName String?
+  gicsIndustryCode     String?
+  gicsIndustryName     String?
+  gicsSubIndustryCode  String?
+  gicsSubIndustryName  String?
+  gicsConfidence       ConfidenceCategory @default(UNCLASSIFIED)
+  gicsEvidence         Json               @default("[]")
+  gicsMethod           String?
+  gicsReviewedAt       DateTime?
+  aliases              String[]           @default([])
+  createdAt            DateTime           @default(now())
+  disclosures          SourceDisclosure[]
+  evidence             VerificationEvidence[]
+  duplicateMatches     DuplicateMatch[]   @relation("PrimaryVictim")
+  duplicateCandidates  DuplicateMatch[]   @relation("CandidateVictim")
+  classifications      ClassificationHistory[]
+  edits                VictimEdit[]
+
+  @@index([name])
+  @@index([normalizedName])
+  @@index([normalizedDomain])
+  @@index([country])
+  @@index([countryCode])
+  @@index([targetedDomainNormalized])
+  @@index([firstReportedAt])
+  @@index([verificationStatus])
+  @@index([duplicateStatus])
+}
+
+model SourceDisclosure {
+  id                String          @id @default(cuid())
+  sourceName        String
+  sourceIdentifier  String?
+  sourceUrl         String?
+  targetedDomain    String?
+  originalVictimName String
+  originalGroupName String?
+  originalCountry   String?
+  originalIndustry  String?
+  publishedAt       DateTime?
+  updatedAtSource   DateTime?
+  retrievedAt       DateTime        @default(now())
+  rawData           Json
+  normalizedData    Json            @default("{}")
+  canonicalVictimId String?
+  canonicalVictim   CanonicalVictim? @relation(fields: [canonicalVictimId], references: [id])
+  ransomwareGroupId String?
+  ransomwareGroup   RansomwareGroup? @relation(fields: [ransomwareGroupId], references: [id])
+
+  @@unique([sourceName, sourceIdentifier])
+  @@index([sourceName])
+  @@index([sourceIdentifier])
+  @@index([publishedAt])
+  @@index([canonicalVictimId])
+}
+
+model VerificationEvidence {
+  id            String             @id @default(cuid())
+  victimId      String
+  victim        CanonicalVictim    @relation(fields: [victimId], references: [id], onDelete: Cascade)
+  sourceUrl     String?
+  sourceName    String?
+  evidenceType  String
+  evidence      String
+  supports      Boolean
+  retrievedAt   DateTime           @default(now())
+  createdBy     String             @default("SYSTEM")
+}
+
+model DuplicateMatch {
+  id                String          @id @default(cuid())
+  primaryVictimId   String
+  primaryVictim     CanonicalVictim @relation("PrimaryVictim", fields: [primaryVictimId], references: [id])
+  candidateVictimId String
+  candidateVictim   CanonicalVictim @relation("CandidateVictim", fields: [candidateVictimId], references: [id])
+  classification    DuplicateStatus
+  similarityScore   Int
+  explanation       Json
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  resolution        String?
+  createdAt         DateTime        @default(now())
+
+  @@unique([primaryVictimId, candidateVictimId])
+  @@index([classification])
+  @@index([similarityScore])
+}
+
+model GicsTaxonomy {
+  sectorCode          String
+  sectorName          String
+  industryGroupCode   String
+  industryGroupName   String
+  industryCode        String
+  industryName        String
+  subIndustryCode     String  @id
+  subIndustryName     String
+
+  @@index([sectorCode])
+  @@index([industryGroupCode])
+  @@index([industryCode])
+}
+
+model ClassificationHistory {
+  id          String          @id @default(cuid())
+  victimId    String
+  victim      CanonicalVictim @relation(fields: [victimId], references: [id], onDelete: Cascade)
+  method      String
+  confidence  ConfidenceCategory
+  evidence    Json
+  reviewedBy  String
+  reviewedAt  DateTime        @default(now())
+  reason      String?
+}
+
+model VictimEdit {
+  id          String          @id @default(cuid())
+  victimId    String
+  victim      CanonicalVictim @relation(fields: [victimId], references: [id], onDelete: Cascade)
+  field       String
+  oldValue    Json
+  newValue    Json
+  analyst     String
+  reason      String?
+  createdAt   DateTime        @default(now())
+}
+
+model IngestionRun {
+  id             String          @id @default(cuid())
+  sourceName     String
+  status         IngestionStatus
+  startedAt      DateTime        @default(now())
+  completedAt    DateTime?
+  recordsRead    Int             @default(0)
+  recordsCreated Int             @default(0)
+  recordsUpdated Int             @default(0)
+  errorCount     Int             @default(0)
+  errors         Json            @default("[]")
+  metadata       Json            @default("{}")
+
+  @@index([sourceName, startedAt])
+  @@index([status])
+}
+
+model IngestionLease {
+  sourceName String   @id
+  ownerToken String
+  expiresAt  DateTime
+  updatedAt  DateTime @updatedAt
+
+  @@index([expiresAt])
+}

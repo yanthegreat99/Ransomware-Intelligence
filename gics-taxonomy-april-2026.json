@@ -1,0 +1,1632 @@
+[
+  {
+    "sectorCode": "10",
+    "sectorName": "Energy",
+    "industryGroupCode": "1010",
+    "industryGroupName": "Energy",
+    "industryCode": "101010",
+    "industryName": "Energy Equipment & Services",
+    "subIndustryCode": "10101010",
+    "subIndustryName": "Oil & Gas Drilling"
+  },
+  {
+    "sectorCode": "10",
+    "sectorName": "Energy",
+    "industryGroupCode": "1010",
+    "industryGroupName": "Energy",
+    "industryCode": "101010",
+    "industryName": "Energy Equipment & Services",
+    "subIndustryCode": "10101020",
+    "subIndustryName": "Oil & Gas Equipment & Services"
+  },
+  {
+    "sectorCode": "10",
+    "sectorName": "Energy",
+    "industryGroupCode": "1010",
+    "industryGroupName": "Energy",
+    "industryCode": "101020",
+    "industryName": "Oil, Gas & Consumable Fuels",
+    "subIndustryCode": "10102010",
+    "subIndustryName": "Integrated Oil & Gas"
+  },
+  {
+    "sectorCode": "10",
+    "sectorName": "Energy",
+    "industryGroupCode": "1010",
+    "industryGroupName": "Energy",
+    "industryCode": "101020",
+    "industryName": "Oil, Gas & Consumable Fuels",
+    "subIndustryCode": "10102020",
+    "subIndustryName": "Oil & Gas Exploration & Production"
+  },
+  {
+    "sectorCode": "10",
+    "sectorName": "Energy",
+    "industryGroupCode": "1010",
+    "industryGroupName": "Energy",
+    "industryCode": "101020",
+    "industryName": "Oil, Gas & Consumable Fuels",
+    "subIndustryCode": "10102030",
+    "subIndustryName": "Oil & Gas Refining & Marketing"
+  },
+  {
+    "sectorCode": "10",
+    "sectorName": "Energy",
+    "industryGroupCode": "1010",
+    "industryGroupName": "Energy",
+    "industryCode": "101020",
+    "industryName": "Oil, Gas & Consumable Fuels",
+    "subIndustryCode": "10102040",
+    "subIndustryName": "Oil & Gas Storage & Transportation"
+  },
+  {
+    "sectorCode": "10",
+    "sectorName": "Energy",
+    "industryGroupCode": "1010",
+    "industryGroupName": "Energy",
+    "industryCode": "101020",
+    "industryName": "Oil, Gas & Consumable Fuels",
+    "subIndustryCode": "10102050",
+    "subIndustryName": "Coal & Consumable Fuels"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151010",
+    "industryName": "Chemicals",
+    "subIndustryCode": "15101010",
+    "subIndustryName": "Commodity Chemicals"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151010",
+    "industryName": "Chemicals",
+    "subIndustryCode": "15101020",
+    "subIndustryName": "Diversified Chemicals"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151010",
+    "industryName": "Chemicals",
+    "subIndustryCode": "15101030",
+    "subIndustryName": "Fertilizers & Agricultural Chemicals"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151010",
+    "industryName": "Chemicals",
+    "subIndustryCode": "15101040",
+    "subIndustryName": "Industrial Gases"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151010",
+    "industryName": "Chemicals",
+    "subIndustryCode": "15101050",
+    "subIndustryName": "Specialty Chemicals"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151020",
+    "industryName": "Construction Materials",
+    "subIndustryCode": "15102010",
+    "subIndustryName": "Construction Materials"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151030",
+    "industryName": "Containers & Packaging",
+    "subIndustryCode": "15103010",
+    "subIndustryName": "Metal, Glass & Plastic Containers"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151030",
+    "industryName": "Containers & Packaging",
+    "subIndustryCode": "15103020",
+    "subIndustryName": "Paper & Plastic Packaging Products & Materials"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151040",
+    "industryName": "Metals & Mining",
+    "subIndustryCode": "15104010",
+    "subIndustryName": "Aluminum"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151040",
+    "industryName": "Metals & Mining",
+    "subIndustryCode": "15104020",
+    "subIndustryName": "Diversified Metals & Mining"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151040",
+    "industryName": "Metals & Mining",
+    "subIndustryCode": "15104025",
+    "subIndustryName": "Copper"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151040",
+    "industryName": "Metals & Mining",
+    "subIndustryCode": "15104030",
+    "subIndustryName": "Gold"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151040",
+    "industryName": "Metals & Mining",
+    "subIndustryCode": "15104040",
+    "subIndustryName": "Precious Metals & Minerals"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151040",
+    "industryName": "Metals & Mining",
+    "subIndustryCode": "15104045",
+    "subIndustryName": "Silver"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151040",
+    "industryName": "Metals & Mining",
+    "subIndustryCode": "15104050",
+    "subIndustryName": "Steel"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151050",
+    "industryName": "Paper & Forest Products",
+    "subIndustryCode": "15105010",
+    "subIndustryName": "Forest Products"
+  },
+  {
+    "sectorCode": "15",
+    "sectorName": "Materials",
+    "industryGroupCode": "1510",
+    "industryGroupName": "Materials",
+    "industryCode": "151050",
+    "industryName": "Paper & Forest Products",
+    "subIndustryCode": "15105020",
+    "subIndustryName": "Paper Products"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201010",
+    "industryName": "Aerospace & Defense",
+    "subIndustryCode": "20101010",
+    "subIndustryName": "Aerospace & Defense"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201020",
+    "industryName": "Building Products",
+    "subIndustryCode": "20102010",
+    "subIndustryName": "Building Products"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201030",
+    "industryName": "Construction & Engineering",
+    "subIndustryCode": "20103010",
+    "subIndustryName": "Construction & Engineering"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201040",
+    "industryName": "Electrical Equipment",
+    "subIndustryCode": "20104010",
+    "subIndustryName": "Electrical Components & Equipment"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201040",
+    "industryName": "Electrical Equipment",
+    "subIndustryCode": "20104020",
+    "subIndustryName": "Heavy Electrical Equipment"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201050",
+    "industryName": "Industrial Conglomerates",
+    "subIndustryCode": "20105010",
+    "subIndustryName": "Industrial Conglomerates"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201060",
+    "industryName": "Machinery",
+    "subIndustryCode": "20106010",
+    "subIndustryName": "Construction Machinery & Heavy Transportation Equipment"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201060",
+    "industryName": "Machinery",
+    "subIndustryCode": "20106015",
+    "subIndustryName": "Agricultural & Farm Machinery"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201060",
+    "industryName": "Machinery",
+    "subIndustryCode": "20106020",
+    "subIndustryName": "Industrial Machinery & Supplies & Components"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2010",
+    "industryGroupName": "Capital Goods",
+    "industryCode": "201070",
+    "industryName": "Trading Companies & Distributors",
+    "subIndustryCode": "20107010",
+    "subIndustryName": "Trading Companies & Distributors"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2020",
+    "industryGroupName": "Commercial & Professional Services",
+    "industryCode": "202010",
+    "industryName": "Commercial Services & Supplies",
+    "subIndustryCode": "20201010",
+    "subIndustryName": "Commercial Printing"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2020",
+    "industryGroupName": "Commercial & Professional Services",
+    "industryCode": "202010",
+    "industryName": "Commercial Services & Supplies",
+    "subIndustryCode": "20201050",
+    "subIndustryName": "Environmental & Facilities Services"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2020",
+    "industryGroupName": "Commercial & Professional Services",
+    "industryCode": "202010",
+    "industryName": "Commercial Services & Supplies",
+    "subIndustryCode": "20201060",
+    "subIndustryName": "Office Services & Supplies"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2020",
+    "industryGroupName": "Commercial & Professional Services",
+    "industryCode": "202010",
+    "industryName": "Commercial Services & Supplies",
+    "subIndustryCode": "20201070",
+    "subIndustryName": "Diversified Support Services"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2020",
+    "industryGroupName": "Commercial & Professional Services",
+    "industryCode": "202010",
+    "industryName": "Commercial Services & Supplies",
+    "subIndustryCode": "20201080",
+    "subIndustryName": "Security & Alarm Services"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2020",
+    "industryGroupName": "Commercial & Professional Services",
+    "industryCode": "202020",
+    "industryName": "Professional Services",
+    "subIndustryCode": "20202010",
+    "subIndustryName": "Human Resource & Employment Services"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2020",
+    "industryGroupName": "Commercial & Professional Services",
+    "industryCode": "202020",
+    "industryName": "Professional Services",
+    "subIndustryCode": "20202020",
+    "subIndustryName": "Research & Consulting Services"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2020",
+    "industryGroupName": "Commercial & Professional Services",
+    "industryCode": "202020",
+    "industryName": "Professional Services",
+    "subIndustryCode": "20202030",
+    "subIndustryName": "Data Processing & Outsourced Services"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203010",
+    "industryName": "Air Freight & Logistics",
+    "subIndustryCode": "20301010",
+    "subIndustryName": "Air Freight & Logistics"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203020",
+    "industryName": "Passenger Airlines",
+    "subIndustryCode": "20302010",
+    "subIndustryName": "Passenger Airlines"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203030",
+    "industryName": "Marine Transportation",
+    "subIndustryCode": "20303010",
+    "subIndustryName": "Marine Transportation"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203040",
+    "industryName": "Ground Transportation",
+    "subIndustryCode": "20304010",
+    "subIndustryName": "Rail Transportation"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203040",
+    "industryName": "Ground Transportation",
+    "subIndustryCode": "20304030",
+    "subIndustryName": "Cargo Ground Transportation"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203040",
+    "industryName": "Ground Transportation",
+    "subIndustryCode": "20304040",
+    "subIndustryName": "Passenger Ground Transportation"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203050",
+    "industryName": "Transportation Infrastructure",
+    "subIndustryCode": "20305010",
+    "subIndustryName": "Airport Services"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203050",
+    "industryName": "Transportation Infrastructure",
+    "subIndustryCode": "20305020",
+    "subIndustryName": "Highways & Railtracks"
+  },
+  {
+    "sectorCode": "20",
+    "sectorName": "Industrials",
+    "industryGroupCode": "2030",
+    "industryGroupName": "Transportation",
+    "industryCode": "203050",
+    "industryName": "Transportation Infrastructure",
+    "subIndustryCode": "20305030",
+    "subIndustryName": "Marine Ports & Services"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2510",
+    "industryGroupName": "Automobiles & Components",
+    "industryCode": "251010",
+    "industryName": "Automobile Components",
+    "subIndustryCode": "25101010",
+    "subIndustryName": "Automotive Parts & Equipment"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2510",
+    "industryGroupName": "Automobiles & Components",
+    "industryCode": "251010",
+    "industryName": "Automobile Components",
+    "subIndustryCode": "25101020",
+    "subIndustryName": "Tires & Rubber"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2510",
+    "industryGroupName": "Automobiles & Components",
+    "industryCode": "251020",
+    "industryName": "Automobiles",
+    "subIndustryCode": "25102010",
+    "subIndustryName": "Automobile Manufacturers"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2510",
+    "industryGroupName": "Automobiles & Components",
+    "industryCode": "251020",
+    "industryName": "Automobiles",
+    "subIndustryCode": "25102020",
+    "subIndustryName": "Motorcycle Manufacturers"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252010",
+    "industryName": "Household Durables",
+    "subIndustryCode": "25201010",
+    "subIndustryName": "Consumer Electronics"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252010",
+    "industryName": "Household Durables",
+    "subIndustryCode": "25201020",
+    "subIndustryName": "Home Furnishings"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252010",
+    "industryName": "Household Durables",
+    "subIndustryCode": "25201030",
+    "subIndustryName": "Homebuilding"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252010",
+    "industryName": "Household Durables",
+    "subIndustryCode": "25201040",
+    "subIndustryName": "Household Appliances"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252010",
+    "industryName": "Household Durables",
+    "subIndustryCode": "25201050",
+    "subIndustryName": "Housewares & Specialties"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252020",
+    "industryName": "Leisure Products",
+    "subIndustryCode": "25202010",
+    "subIndustryName": "Leisure Products"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252030",
+    "industryName": "Textiles, Apparel & Luxury Goods",
+    "subIndustryCode": "25203010",
+    "subIndustryName": "Apparel, Accessories & Luxury Goods"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252030",
+    "industryName": "Textiles, Apparel & Luxury Goods",
+    "subIndustryCode": "25203020",
+    "subIndustryName": "Footwear"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2520",
+    "industryGroupName": "Consumer Durables & Apparel",
+    "industryCode": "252030",
+    "industryName": "Textiles, Apparel & Luxury Goods",
+    "subIndustryCode": "25203030",
+    "subIndustryName": "Textiles"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2530",
+    "industryGroupName": "Consumer Services",
+    "industryCode": "253010",
+    "industryName": "Hotels, Restaurants & Leisure",
+    "subIndustryCode": "25301010",
+    "subIndustryName": "Casinos & Gaming"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2530",
+    "industryGroupName": "Consumer Services",
+    "industryCode": "253010",
+    "industryName": "Hotels, Restaurants & Leisure",
+    "subIndustryCode": "25301020",
+    "subIndustryName": "Hotels, Resorts & Cruise Lines"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2530",
+    "industryGroupName": "Consumer Services",
+    "industryCode": "253010",
+    "industryName": "Hotels, Restaurants & Leisure",
+    "subIndustryCode": "25301030",
+    "subIndustryName": "Leisure Facilities"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2530",
+    "industryGroupName": "Consumer Services",
+    "industryCode": "253010",
+    "industryName": "Hotels, Restaurants & Leisure",
+    "subIndustryCode": "25301040",
+    "subIndustryName": "Restaurants"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2530",
+    "industryGroupName": "Consumer Services",
+    "industryCode": "253020",
+    "industryName": "Diversified Consumer Services",
+    "subIndustryCode": "25302010",
+    "subIndustryName": "Education Services"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2530",
+    "industryGroupName": "Consumer Services",
+    "industryCode": "253020",
+    "industryName": "Diversified Consumer Services",
+    "subIndustryCode": "25302020",
+    "subIndustryName": "Specialized Consumer Services"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2550",
+    "industryGroupName": "Consumer Discretionary Distribution & Retail",
+    "industryCode": "255010",
+    "industryName": "Distributors",
+    "subIndustryCode": "25501010",
+    "subIndustryName": "Distributors"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2550",
+    "industryGroupName": "Consumer Discretionary Distribution & Retail",
+    "industryCode": "255030",
+    "industryName": "Broadline Retail",
+    "subIndustryCode": "25503030",
+    "subIndustryName": "Broadline Retail"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2550",
+    "industryGroupName": "Consumer Discretionary Distribution & Retail",
+    "industryCode": "255040",
+    "industryName": "Specialty Retail",
+    "subIndustryCode": "25504010",
+    "subIndustryName": "Apparel Retail"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2550",
+    "industryGroupName": "Consumer Discretionary Distribution & Retail",
+    "industryCode": "255040",
+    "industryName": "Specialty Retail",
+    "subIndustryCode": "25504020",
+    "subIndustryName": "Computer & Electronics Retail"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2550",
+    "industryGroupName": "Consumer Discretionary Distribution & Retail",
+    "industryCode": "255040",
+    "industryName": "Specialty Retail",
+    "subIndustryCode": "25504030",
+    "subIndustryName": "Home Improvement Retail"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2550",
+    "industryGroupName": "Consumer Discretionary Distribution & Retail",
+    "industryCode": "255040",
+    "industryName": "Specialty Retail",
+    "subIndustryCode": "25504040",
+    "subIndustryName": "Other Specialty Retail"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2550",
+    "industryGroupName": "Consumer Discretionary Distribution & Retail",
+    "industryCode": "255040",
+    "industryName": "Specialty Retail",
+    "subIndustryCode": "25504050",
+    "subIndustryName": "Automotive Retail"
+  },
+  {
+    "sectorCode": "25",
+    "sectorName": "Consumer Discretionary",
+    "industryGroupCode": "2550",
+    "industryGroupName": "Consumer Discretionary Distribution & Retail",
+    "industryCode": "255040",
+    "industryName": "Specialty Retail",
+    "subIndustryCode": "25504060",
+    "subIndustryName": "Homefurnishing Retail"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3010",
+    "industryGroupName": "Consumer Staples Distribution & Retail",
+    "industryCode": "301010",
+    "industryName": "Consumer Staples Distribution & Retail",
+    "subIndustryCode": "30101010",
+    "subIndustryName": "Drug Retail"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3010",
+    "industryGroupName": "Consumer Staples Distribution & Retail",
+    "industryCode": "301010",
+    "industryName": "Consumer Staples Distribution & Retail",
+    "subIndustryCode": "30101020",
+    "subIndustryName": "Food Distributors"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3010",
+    "industryGroupName": "Consumer Staples Distribution & Retail",
+    "industryCode": "301010",
+    "industryName": "Consumer Staples Distribution & Retail",
+    "subIndustryCode": "30101030",
+    "subIndustryName": "Food Retail"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3010",
+    "industryGroupName": "Consumer Staples Distribution & Retail",
+    "industryCode": "301010",
+    "industryName": "Consumer Staples Distribution & Retail",
+    "subIndustryCode": "30101040",
+    "subIndustryName": "Consumer Staples Merchandise Retail"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3020",
+    "industryGroupName": "Food, Beverage & Tobacco",
+    "industryCode": "302010",
+    "industryName": "Beverages",
+    "subIndustryCode": "30201010",
+    "subIndustryName": "Brewers"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3020",
+    "industryGroupName": "Food, Beverage & Tobacco",
+    "industryCode": "302010",
+    "industryName": "Beverages",
+    "subIndustryCode": "30201020",
+    "subIndustryName": "Distillers & Vintners"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3020",
+    "industryGroupName": "Food, Beverage & Tobacco",
+    "industryCode": "302010",
+    "industryName": "Beverages",
+    "subIndustryCode": "30201030",
+    "subIndustryName": "Soft Drinks & Non-alcoholic Beverages"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3020",
+    "industryGroupName": "Food, Beverage & Tobacco",
+    "industryCode": "302020",
+    "industryName": "Food Products",
+    "subIndustryCode": "30202010",
+    "subIndustryName": "Agricultural Products & Services"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3020",
+    "industryGroupName": "Food, Beverage & Tobacco",
+    "industryCode": "302020",
+    "industryName": "Food Products",
+    "subIndustryCode": "30202030",
+    "subIndustryName": "Packaged Foods & Meats"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3020",
+    "industryGroupName": "Food, Beverage & Tobacco",
+    "industryCode": "302030",
+    "industryName": "Tobacco",
+    "subIndustryCode": "30203010",
+    "subIndustryName": "Tobacco"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3030",
+    "industryGroupName": "Household & Personal Products",
+    "industryCode": "303010",
+    "industryName": "Household Products",
+    "subIndustryCode": "30301010",
+    "subIndustryName": "Household Products"
+  },
+  {
+    "sectorCode": "30",
+    "sectorName": "Consumer Staples",
+    "industryGroupCode": "3030",
+    "industryGroupName": "Household & Personal Products",
+    "industryCode": "303020",
+    "industryName": "Personal Care Products",
+    "subIndustryCode": "30302010",
+    "subIndustryName": "Personal Care Products"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3510",
+    "industryGroupName": "Health Care Equipment & Services",
+    "industryCode": "351010",
+    "industryName": "Health Care Equipment & Supplies",
+    "subIndustryCode": "35101010",
+    "subIndustryName": "Health Care Equipment"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3510",
+    "industryGroupName": "Health Care Equipment & Services",
+    "industryCode": "351010",
+    "industryName": "Health Care Equipment & Supplies",
+    "subIndustryCode": "35101020",
+    "subIndustryName": "Health Care Supplies"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3510",
+    "industryGroupName": "Health Care Equipment & Services",
+    "industryCode": "351020",
+    "industryName": "Health Care Providers & Services",
+    "subIndustryCode": "35102010",
+    "subIndustryName": "Health Care Distributors"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3510",
+    "industryGroupName": "Health Care Equipment & Services",
+    "industryCode": "351020",
+    "industryName": "Health Care Providers & Services",
+    "subIndustryCode": "35102015",
+    "subIndustryName": "Health Care Services"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3510",
+    "industryGroupName": "Health Care Equipment & Services",
+    "industryCode": "351020",
+    "industryName": "Health Care Providers & Services",
+    "subIndustryCode": "35102020",
+    "subIndustryName": "Health Care Facilities"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3510",
+    "industryGroupName": "Health Care Equipment & Services",
+    "industryCode": "351020",
+    "industryName": "Health Care Providers & Services",
+    "subIndustryCode": "35102030",
+    "subIndustryName": "Managed Health Care"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3510",
+    "industryGroupName": "Health Care Equipment & Services",
+    "industryCode": "351030",
+    "industryName": "Health Care Technology",
+    "subIndustryCode": "35103010",
+    "subIndustryName": "Health Care Technology"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3520",
+    "industryGroupName": "Pharmaceuticals, Biotechnology & Life Sciences",
+    "industryCode": "352010",
+    "industryName": "Biotechnology",
+    "subIndustryCode": "35201010",
+    "subIndustryName": "Biotechnology"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3520",
+    "industryGroupName": "Pharmaceuticals, Biotechnology & Life Sciences",
+    "industryCode": "352020",
+    "industryName": "Pharmaceuticals",
+    "subIndustryCode": "35202010",
+    "subIndustryName": "Pharmaceuticals"
+  },
+  {
+    "sectorCode": "35",
+    "sectorName": "Health Care",
+    "industryGroupCode": "3520",
+    "industryGroupName": "Pharmaceuticals, Biotechnology & Life Sciences",
+    "industryCode": "352030",
+    "industryName": "Life Sciences Tools & Services",
+    "subIndustryCode": "35203010",
+    "subIndustryName": "Life Sciences Tools & Services"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4010",
+    "industryGroupName": "Banks",
+    "industryCode": "401010",
+    "industryName": "Banks",
+    "subIndustryCode": "40101010",
+    "subIndustryName": "Diversified Banks"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4010",
+    "industryGroupName": "Banks",
+    "industryCode": "401010",
+    "industryName": "Banks",
+    "subIndustryCode": "40101015",
+    "subIndustryName": "Regional Banks"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402010",
+    "industryName": "Financial Services",
+    "subIndustryCode": "40201020",
+    "subIndustryName": "Diversified Financial Services"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402010",
+    "industryName": "Financial Services",
+    "subIndustryCode": "40201030",
+    "subIndustryName": "Multi-Sector Holdings"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402010",
+    "industryName": "Financial Services",
+    "subIndustryCode": "40201040",
+    "subIndustryName": "Specialized Finance"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402010",
+    "industryName": "Financial Services",
+    "subIndustryCode": "40201050",
+    "subIndustryName": "Commercial & Residential Mortgage Finance"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402010",
+    "industryName": "Financial Services",
+    "subIndustryCode": "40201060",
+    "subIndustryName": "Transaction & Payment Processing Services"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402020",
+    "industryName": "Consumer Finance",
+    "subIndustryCode": "40202010",
+    "subIndustryName": "Consumer Finance"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402030",
+    "industryName": "Capital Markets",
+    "subIndustryCode": "40203010",
+    "subIndustryName": "Asset Management & Custody Banks"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402030",
+    "industryName": "Capital Markets",
+    "subIndustryCode": "40203020",
+    "subIndustryName": "Investment Banking & Brokerage"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402030",
+    "industryName": "Capital Markets",
+    "subIndustryCode": "40203030",
+    "subIndustryName": "Diversified Capital Markets"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402030",
+    "industryName": "Capital Markets",
+    "subIndustryCode": "40203040",
+    "subIndustryName": "Financial Exchanges & Data"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4020",
+    "industryGroupName": "Financial Services",
+    "industryCode": "402040",
+    "industryName": "Mortgage Real Estate Investment Trusts",
+    "subIndustryCode": "40204010",
+    "subIndustryName": "Mortgage REITs*"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4030",
+    "industryGroupName": "Insurance",
+    "industryCode": "403010",
+    "industryName": "Insurance",
+    "subIndustryCode": "40301010",
+    "subIndustryName": "Insurance Brokers"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4030",
+    "industryGroupName": "Insurance",
+    "industryCode": "403010",
+    "industryName": "Insurance",
+    "subIndustryCode": "40301020",
+    "subIndustryName": "Life & Health Insurance"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4030",
+    "industryGroupName": "Insurance",
+    "industryCode": "403010",
+    "industryName": "Insurance",
+    "subIndustryCode": "40301030",
+    "subIndustryName": "Multi-line Insurance"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4030",
+    "industryGroupName": "Insurance",
+    "industryCode": "403010",
+    "industryName": "Insurance",
+    "subIndustryCode": "40301040",
+    "subIndustryName": "Property & Casualty Insurance"
+  },
+  {
+    "sectorCode": "40",
+    "sectorName": "Financials",
+    "industryGroupCode": "4030",
+    "industryGroupName": "Insurance",
+    "industryCode": "403010",
+    "industryName": "Insurance",
+    "subIndustryCode": "40301050",
+    "subIndustryName": "Reinsurance"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4510",
+    "industryGroupName": "Software & Services",
+    "industryCode": "451020",
+    "industryName": "IT Services",
+    "subIndustryCode": "45102010",
+    "subIndustryName": "IT Consulting & Other Services"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4510",
+    "industryGroupName": "Software & Services",
+    "industryCode": "451020",
+    "industryName": "IT Services",
+    "subIndustryCode": "45102030",
+    "subIndustryName": "Internet Services & Infrastructure"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4510",
+    "industryGroupName": "Software & Services",
+    "industryCode": "451030",
+    "industryName": "Software",
+    "subIndustryCode": "45103010",
+    "subIndustryName": "Application Software"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4510",
+    "industryGroupName": "Software & Services",
+    "industryCode": "451030",
+    "industryName": "Software",
+    "subIndustryCode": "45103020",
+    "subIndustryName": "Systems Software"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4520",
+    "industryGroupName": "Technology Hardware & Equipment",
+    "industryCode": "452010",
+    "industryName": "Communications Equipment",
+    "subIndustryCode": "45201020",
+    "subIndustryName": "Communications Equipment"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4520",
+    "industryGroupName": "Technology Hardware & Equipment",
+    "industryCode": "452020",
+    "industryName": "Technology Hardware, Storage & Peripherals",
+    "subIndustryCode": "45202030",
+    "subIndustryName": "Technology Hardware, Storage & Peripherals"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4520",
+    "industryGroupName": "Technology Hardware & Equipment",
+    "industryCode": "452030",
+    "industryName": "Electronic Equipment, Instruments & Components",
+    "subIndustryCode": "45203010",
+    "subIndustryName": "Electronic Equipment & Instruments"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4520",
+    "industryGroupName": "Technology Hardware & Equipment",
+    "industryCode": "452030",
+    "industryName": "Electronic Equipment, Instruments & Components",
+    "subIndustryCode": "45203015",
+    "subIndustryName": "Electronic Components"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4520",
+    "industryGroupName": "Technology Hardware & Equipment",
+    "industryCode": "452030",
+    "industryName": "Electronic Equipment, Instruments & Components",
+    "subIndustryCode": "45203020",
+    "subIndustryName": "Electronic Manufacturing Services"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4520",
+    "industryGroupName": "Technology Hardware & Equipment",
+    "industryCode": "452030",
+    "industryName": "Electronic Equipment, Instruments & Components",
+    "subIndustryCode": "45203030",
+    "subIndustryName": "Technology Distributors"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4530",
+    "industryGroupName": "Semiconductors & Semiconductor Equipment",
+    "industryCode": "453010",
+    "industryName": "Semiconductors & Semiconductor Equipment",
+    "subIndustryCode": "45301010",
+    "subIndustryName": "Semiconductor Materials & Equipment"
+  },
+  {
+    "sectorCode": "45",
+    "sectorName": "Information Technology",
+    "industryGroupCode": "4530",
+    "industryGroupName": "Semiconductors & Semiconductor Equipment",
+    "industryCode": "453010",
+    "industryName": "Semiconductors & Semiconductor Equipment",
+    "subIndustryCode": "45301020",
+    "subIndustryName": "Semiconductors"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5010",
+    "industryGroupName": "Telecommunication Services",
+    "industryCode": "501010",
+    "industryName": "Diversified Telecommunication Services",
+    "subIndustryCode": "50101010",
+    "subIndustryName": "Alternative Carriers"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5010",
+    "industryGroupName": "Telecommunication Services",
+    "industryCode": "501010",
+    "industryName": "Diversified Telecommunication Services",
+    "subIndustryCode": "50101020",
+    "subIndustryName": "Integrated Telecommunication Services"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5010",
+    "industryGroupName": "Telecommunication Services",
+    "industryCode": "501020",
+    "industryName": "Wireless Telecommunication Services",
+    "subIndustryCode": "50102010",
+    "subIndustryName": "Wireless Telecommunication Services"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5020",
+    "industryGroupName": "Media & Entertainment",
+    "industryCode": "502010",
+    "industryName": "Media",
+    "subIndustryCode": "50201010",
+    "subIndustryName": "Advertising"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5020",
+    "industryGroupName": "Media & Entertainment",
+    "industryCode": "502010",
+    "industryName": "Media",
+    "subIndustryCode": "50201020",
+    "subIndustryName": "Broadcasting"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5020",
+    "industryGroupName": "Media & Entertainment",
+    "industryCode": "502010",
+    "industryName": "Media",
+    "subIndustryCode": "50201030",
+    "subIndustryName": "Cable & Satellite"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5020",
+    "industryGroupName": "Media & Entertainment",
+    "industryCode": "502010",
+    "industryName": "Media",
+    "subIndustryCode": "50201040",
+    "subIndustryName": "Publishing"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5020",
+    "industryGroupName": "Media & Entertainment",
+    "industryCode": "502020",
+    "industryName": "Entertainment",
+    "subIndustryCode": "50202010",
+    "subIndustryName": "Movies & Entertainment"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5020",
+    "industryGroupName": "Media & Entertainment",
+    "industryCode": "502020",
+    "industryName": "Entertainment",
+    "subIndustryCode": "50202020",
+    "subIndustryName": "Interactive Home Entertainment"
+  },
+  {
+    "sectorCode": "50",
+    "sectorName": "Communication Services",
+    "industryGroupCode": "5020",
+    "industryGroupName": "Media & Entertainment",
+    "industryCode": "502030",
+    "industryName": "Interactive Media & Services",
+    "subIndustryCode": "50203010",
+    "subIndustryName": "Interactive Media & Services"
+  },
+  {
+    "sectorCode": "55",
+    "sectorName": "Utilities",
+    "industryGroupCode": "5510",
+    "industryGroupName": "Utilities",
+    "industryCode": "551010",
+    "industryName": "Electric Utilities",
+    "subIndustryCode": "55101010",
+    "subIndustryName": "Electric Utilities"
+  },
+  {
+    "sectorCode": "55",
+    "sectorName": "Utilities",
+    "industryGroupCode": "5510",
+    "industryGroupName": "Utilities",
+    "industryCode": "551020",
+    "industryName": "Gas Utilities",
+    "subIndustryCode": "55102010",
+    "subIndustryName": "Gas Utilities"
+  },
+  {
+    "sectorCode": "55",
+    "sectorName": "Utilities",
+    "industryGroupCode": "5510",
+    "industryGroupName": "Utilities",
+    "industryCode": "551030",
+    "industryName": "Multi-Utilities",
+    "subIndustryCode": "55103010",
+    "subIndustryName": "Multi-Utilities"
+  },
+  {
+    "sectorCode": "55",
+    "sectorName": "Utilities",
+    "industryGroupCode": "5510",
+    "industryGroupName": "Utilities",
+    "industryCode": "551040",
+    "industryName": "Water Utilities",
+    "subIndustryCode": "55104010",
+    "subIndustryName": "Water Utilities"
+  },
+  {
+    "sectorCode": "55",
+    "sectorName": "Utilities",
+    "industryGroupCode": "5510",
+    "industryGroupName": "Utilities",
+    "industryCode": "551050",
+    "industryName": "Independent Power and Renewable Electricity Producers",
+    "subIndustryCode": "55105010",
+    "subIndustryName": "Independent Power Producers & Energy Traders"
+  },
+  {
+    "sectorCode": "55",
+    "sectorName": "Utilities",
+    "industryGroupCode": "5510",
+    "industryGroupName": "Utilities",
+    "industryCode": "551050",
+    "industryName": "Independent Power and Renewable Electricity Producers",
+    "subIndustryCode": "55105020",
+    "subIndustryName": "Renewable Electricity"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601010",
+    "industryName": "Diversified REITs",
+    "subIndustryCode": "60101010",
+    "subIndustryName": "Diversified REITs*"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601025",
+    "industryName": "Industrial REITs",
+    "subIndustryCode": "60102510",
+    "subIndustryName": "Industrial REITs*"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601030",
+    "industryName": "Hotel & Resort REITs",
+    "subIndustryCode": "60103010",
+    "subIndustryName": "Hotel & Resort REITs"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601040",
+    "industryName": "Office REITs",
+    "subIndustryCode": "60104010",
+    "subIndustryName": "Office REITs*"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601050",
+    "industryName": "Health Care REITs",
+    "subIndustryCode": "60105010",
+    "subIndustryName": "Health Care REITs*"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601060",
+    "industryName": "Residential REITs",
+    "subIndustryCode": "60106010",
+    "subIndustryName": "Multi-Family Residential REITs"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601060",
+    "industryName": "Residential REITs",
+    "subIndustryCode": "60106020",
+    "subIndustryName": "Single-Family Residential REITs"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601070",
+    "industryName": "Retail REITs",
+    "subIndustryCode": "60107010",
+    "subIndustryName": "Retail REITs*"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601080",
+    "industryName": "Specialized REITs",
+    "subIndustryCode": "60108010",
+    "subIndustryName": "Other Specialized REITs"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601080",
+    "industryName": "Specialized REITs",
+    "subIndustryCode": "60108020",
+    "subIndustryName": "Self-Storage REITs*"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601080",
+    "industryName": "Specialized REITs",
+    "subIndustryCode": "60108030",
+    "subIndustryName": "Telecom Tower REITs"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601080",
+    "industryName": "Specialized REITs",
+    "subIndustryCode": "60108040",
+    "subIndustryName": "Timber REITs*"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6010",
+    "industryGroupName": "Equity Real Estate Investment Trusts (REITs)",
+    "industryCode": "601080",
+    "industryName": "Specialized REITs",
+    "subIndustryCode": "60108050",
+    "subIndustryName": "Data Center REITs*"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6020",
+    "industryGroupName": "Real Estate Management & Development",
+    "industryCode": "602010",
+    "industryName": "Real Estate Management & Development",
+    "subIndustryCode": "60201010",
+    "subIndustryName": "Diversified Real Estate Activities"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6020",
+    "industryGroupName": "Real Estate Management & Development",
+    "industryCode": "602010",
+    "industryName": "Real Estate Management & Development",
+    "subIndustryCode": "60201020",
+    "subIndustryName": "Companies engaged in operating real estate properties for the purpose of leasing &"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6020",
+    "industryGroupName": "Real Estate Management & Development",
+    "industryCode": "602010",
+    "industryName": "Real Estate Management & Development",
+    "subIndustryCode": "60201030",
+    "subIndustryName": "Real Estate Development"
+  },
+  {
+    "sectorCode": "60",
+    "sectorName": "Real Estate",
+    "industryGroupCode": "6020",
+    "industryGroupName": "Real Estate Management & Development",
+    "industryCode": "602010",
+    "industryName": "Real Estate Management & Development",
+    "subIndustryCode": "60201040",
+    "subIndustryName": "Real Estate Services"
+  }
+]
