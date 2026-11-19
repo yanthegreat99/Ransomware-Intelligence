@@ -83,6 +83,12 @@ Authorization: Bearer $INGESTION_JOB_SECRET
 
 The RansomLook adapter is disabled until `RANSOMLOOK_API_URL` is configured. Additional sources require a documented API and a dedicated adapter.
 
+## Database maintenance workflow
+
+The GitHub Actions `Database maintenance` workflow runs daily at 03:00 UTC and can also be started manually. Add the Prisma PostgreSQL connection string as the repository Actions secret `DATABASE_URL` under Settings → Secrets and variables → Actions. Do not commit the connection string.
+
+The workflow normalizes country values, backfills target domains, seeds GICS taxonomy, and applies ransomware-group merges. Group normalization uses `--apply`, which can merge groups and delete duplicate group rows. Review its logs after each run. Scheduled runs start only after this workflow is merged into the repository's default branch.
+
 ## Data integrity
 
 Canonical victims are separate from source disclosures. Repeated source records update or link to an existing victim and never infer deletion. Duplicate matches contain a score and explanation. Verification and organisation legitimacy are stored separately. GICS fields and review history are retained, and GICS assignments are analytical rather than official MSCI classifications.
