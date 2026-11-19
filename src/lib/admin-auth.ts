@@ -1,12 +1,11 @@
 import { createHmac, timingSafeEqual, randomBytes } from "node:crypto";
 import type { NextRequest } from "next/server";
+import { getAppInput } from "@/lib/prisma";
 
 export const ADMIN_SESSION_COOKIE = "ransomware_analyst_session";
 
 function sessionSecret(): string {
-  const secret = process.env.ANALYST_ACCESS_SECRET;
-  if (!secret) throw new Error("ANALYST_ACCESS_SECRET is not configured");
-  return secret;
+  return getAppInput().analystAccessSecret.expose();
 }
 
 export function verifyAdminPassword(password: string): boolean {
@@ -46,7 +45,7 @@ export function verifyAdminSession(cookieValue?: string): boolean {
 }
 
 export function authorizeAdminRequest(request: NextRequest): boolean {
-  const configured = process.env.ANALYST_ACCESS_SECRET;
+  const configured = sessionSecret();
   const bearer = request.headers.get("authorization");
   if (configured && bearer === `Bearer ${configured}`) return true;
   return verifyAdminSession(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);

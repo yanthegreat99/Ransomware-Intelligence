@@ -1,25 +1,36 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
+import { getAppInput } from "@/lib/prisma";
 import { ingestAdapter } from "@/lib/ingestion";
 import { RansomLookAdapter, RansomfeedAdapter, RansomwareLiveAdapter } from "@/lib/source-adapter";
 import { authorizeAdminRequest } from "@/lib/admin-auth";
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.INGESTION_JOB_SECRET;
-  if ((!secret || request.headers.get("authorization") !== `Bearer ${secret}`) && !authorizeAdminRequest(request)) {
+  const input = getAppInput();
+  const jobSecret = input.ingestionJobSecret?.expose();
+  const sourceConfig = {
+    ransomLookApiUrl: input.ransomLookApiUrl?.expose(),
+    ransomLookApiKey: input.ransomLookApiKey?.expose(),
+    ransomLookDays: input.ransomLookDays?.expose(),
+    ransomwareLiveApiUrl: input.ransomwareLiveApiUrl?.expose(),
+    ransomwareLiveProApiUrl: input.ransomwareLiveProApiUrl?.expose(),
+    ransomwareLiveApiKey: input.ransomwareLiveApiKey?.expose(),
+    ransomFeedApiUrl: input.ransomFeedApiUrl?.expose(),
+  };
+  if ((!jobSecret || request.headers.get("authorization") !== `Bearer ${jobSecret}`) && !authorizeAdminRequest(request)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   try {
     const source = request.nextUrl.searchParams.get("source")?.toLowerCase();
     const adapters = [
       ...(!source || source === "ransomlook"
-        ? (process.env.RANSOMLOOK_API_URL ? [new RansomLookAdapter()] : [])
+        ? (sourceConfig.ransomLookApiUrl ? [new RansomLookAdapter(sourceConfig)] : [])
         : []),
       ...(!source || source === "ransomware.live" || source === "ransomwarelive"
-        ? (process.env.RANSOMWARELIVE_API_URL !== "false" ? [new RansomwareLiveAdapter()] : [])
+        ? (sourceConfig.ransomwareLiveApiUrl !== "false" ? [new RansomwareLiveAdapter(sourceConfig)] : [])
         : []),
       ...(!source || source === "ransomfeed"
-        ? (process.env.RANSOMFEED_API_URL !== "false" ? [new RansomfeedAdapter()] : [])
+        ? (sourceConfig.ransomFeedApiUrl !== "false" ? [new RansomfeedAdapter(sourceConfig)] : [])
         : []),
     ];
     if (!adapters.length) {
