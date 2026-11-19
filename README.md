@@ -34,7 +34,7 @@ Local database scripts load `DATABASE_URL` from `.env.local` (or `.env`) and clo
 
 - `DATABASE_URL`: PostgreSQL connection string.
 - `RANSOMLOOK_API_URL`: Optional documented RansomLook API endpoint.
-- `RANSOMLOOK_API_KEY`: Optional RansomLook API key for protected export endpoints.
+- `RANSOMLOOK_API_KEY`: Not requested by the Composer module; the public `/posts` endpoint does not need it. Protected export endpoints require a key.
 - `RANSOMWARELIVE_API_URL`: Ransomware.live v2 endpoint. Set to `false` to disable.
 - `RANSOMWARELIVE_API_KEY`: Ransomware.live PRO token. Sent only as `X-API-KEY` to the configured PRO server API.
 - `RANSOMWARELIVE_PRO_API_URL`: Optional PRO endpoint override; defaults to `https://api-pro.ransomware.live/victims/recent`.
