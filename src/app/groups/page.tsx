@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -10,32 +9,47 @@ export default async function GroupsPage({
   searchParams: Promise<{ q?:string; status?:string; sort?:string }>;
 }) {
   const params = await searchParams;
-  const where: Prisma.RansomwareGroupWhereInput = {};
-  if (params.q) {
-    where.OR = [
-      { name:{ contains:params.q, mode:"insensitive" } },
-      { aliases:{ has:params.q } },
-    ];
+  const db = getDb();
+  let groupsQuery = db.orm.public.RansomwareGroup;
+  if (params.status) {
+    groupsQuery = groupsQuery.where({ operationalStatus: params.status });
   }
-  if (params.status) where.operationalStatus=params.status;
 
-  let groups: Array<Prisma.RansomwareGroupGetPayload<{ include:{_count:{select:{victims:true}}} }>> = [];
+  let groups: Array<{
+    id: string;
+    name: string;
+    aliases: readonly (string | null)[] | null;
+    operationalStatus: string;
+    firstObserved: Date | null;
+    lastObserved: Date | null;
+    victims: number;
+  }> = [];
   let totalGroups = 0;
   let activeGroups = 0;
   try {
-    [groups,totalGroups,activeGroups] = await Promise.all([
-      prisma.ransomwareGroup.findMany({
-        where,
-        include:{ _count:{select:{victims:true}} },
-        orderBy: params.sort==="name"
-          ? { name:"asc" }
-          : params.sort==="first"
-            ? { firstObserved:"asc" }
-            : { lastObserved:"desc" },
-      }),
-      prisma.ransomwareGroup.count(),
-      prisma.ransomwareGroup.count({ where:{ operationalStatus:"ACTIVE" } }),
+    const [allGroups,total,active] = await Promise.all([
+      groupsQuery
+        .include("victims", (victims) => victims.count())
+        .orderBy(params.sort === "name"
+          ? (group) => group.name.asc()
+          : params.sort === "first"
+            ? (group) => group.firstObserved.asc()
+            : (group) => group.lastObserved.desc())
+        .all(),
+      db.orm.public.RansomwareGroup.aggregate((aggregate) => ({ total: aggregate.count() }))
+        .then((result) => result.total),
+      db.orm.public.RansomwareGroup.where({ operationalStatus: "ACTIVE" })
+        .aggregate((aggregate) => ({ total: aggregate.count() }))
+        .then((result) => result.total),
     ]);
+    groups = params.q
+      ? allGroups.filter((group) =>
+          group.name.toLowerCase().includes(params.q!.toLowerCase()) ||
+          (group.aliases ?? []).some((alias) => alias === params.q),
+        )
+      : allGroups;
+    totalGroups = total;
+    activeGroups = active;
   } catch {}
 
   return (
@@ -70,9 +84,9 @@ export default async function GroupsPage({
             {groups.length ? groups.map((group)=>(
               <tr key={group.id}>
                 <td><Link href={`/groups/${group.id}`}>{group.name}</Link></td>
-                <td>{group.aliases.length ? group.aliases.join(", ") : "None"}</td>
+                <td>{group.aliases?.length ? group.aliases.filter((alias): alias is string => Boolean(alias)).join(", ") : "None"}</td>
                 <td><span className={`status ${group.operationalStatus==="ACTIVE"?"verified":""}`}>{group.operationalStatus}</span></td>
-                <td>{group._count.victims.toLocaleString()}</td>
+                <td>{group.victims.toLocaleString()}</td>
                 <td>{group.firstObserved?.toISOString().slice(0,10) ?? "Unknown"}</td>
                 <td>{group.lastObserved?.toISOString().slice(0,10) ?? "Unknown"}</td>
               </tr>

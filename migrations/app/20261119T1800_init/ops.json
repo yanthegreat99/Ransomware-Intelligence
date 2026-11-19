@@ -1,0 +1,2213 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.ConfidenceCategory",
+    "label": "Create enum type \"ConfidenceCategory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "ConfidenceCategory"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"ConfidenceCategory\"",
+        "sql": "CREATE TYPE \"public\".\"ConfidenceCategory\" AS ENUM ('HIGH', 'MEDIUM', 'LOW', 'UNCLASSIFIED')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.DuplicateStatus",
+    "label": "Create enum type \"DuplicateStatus\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "DuplicateStatus"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"DuplicateStatus\"",
+        "sql": "CREATE TYPE \"public\".\"DuplicateStatus\" AS ENUM ('CONFIRMED_DUPLICATE', 'POTENTIAL_DUPLICATE', 'UNIQUE_VICTIM')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.IngestionStatus",
+    "label": "Create enum type \"IngestionStatus\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "IngestionStatus"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"IngestionStatus\"",
+        "sql": "CREATE TYPE \"public\".\"IngestionStatus\" AS ENUM ('SUCCESS', 'PARTIAL', 'FAILED', 'RUNNING')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "createNativeEnumType.VerificationStatus",
+    "label": "Create enum type \"VerificationStatus\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "type",
+        "name": "VerificationStatus"
+      }
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "create enum type \"VerificationStatus\"",
+        "sql": "CREATE TYPE \"public\".\"VerificationStatus\" AS ENUM ('VERIFIED', 'PARTIALLY_VERIFIED', 'UNVERIFIED', 'DISPUTED', 'REMOVED', 'UNDER_REVIEW')",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.CanonicalVictim",
+    "label": "Create table \"CanonicalVictim\"",
+    "summary": "Creates table \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"CanonicalVictim\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"CanonicalVictim\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"CanonicalVictim\"",
+        "sql": "CREATE TABLE \"public\".\"CanonicalVictim\" (\n  \"aliases\" text[] DEFAULT '{}',\n  \"confidenceScore\" int4 DEFAULT 0 NOT NULL,\n  \"country\" text,\n  \"countryCode\" text,\n  \"createdAt\" timestamp(3) DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"domain\" text,\n  \"duplicateStatus\" \"DuplicateStatus\" DEFAULT 'UNIQUE_VICTIM'::\"DuplicateStatus\" NOT NULL,\n  \"firstReportedAt\" timestamp(3) NOT NULL,\n  \"gicsConfidence\" \"ConfidenceCategory\" DEFAULT 'UNCLASSIFIED'::\"ConfidenceCategory\" NOT NULL,\n  \"gicsEvidence\" jsonb DEFAULT '[]'::jsonb NOT NULL,\n  \"gicsIndustryCode\" text,\n  \"gicsIndustryGroupCode\" text,\n  \"gicsIndustryGroupName\" text,\n  \"gicsIndustryName\" text,\n  \"gicsMethod\" text,\n  \"gicsReviewedAt\" timestamp(3),\n  \"gicsSectorCode\" text,\n  \"gicsSectorName\" text,\n  \"gicsSubIndustryCode\" text,\n  \"gicsSubIndustryName\" text,\n  \"id\" text NOT NULL,\n  \"incidentStatus\" text DEFAULT 'UNVERIFIED_CLAIM' NOT NULL,\n  \"lastCheckedAt\" timestamp(3),\n  \"lastUpdatedAt\" timestamp(3) NOT NULL,\n  \"legitimacyStatus\" text DEFAULT 'UNKNOWN' NOT NULL,\n  \"name\" text NOT NULL,\n  \"normalizedDomain\" text,\n  \"normalizedName\" text NOT NULL,\n  \"organisationType\" text,\n  \"ransomwareGroupId\" text,\n  \"region\" text,\n  \"targetedDomain\" text,\n  \"targetedDomainNormalized\" text,\n  \"verificationStatus\" \"VerificationStatus\" DEFAULT 'UNVERIFIED'::\"VerificationStatus\" NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"CanonicalVictim\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"CanonicalVictim\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.ClassificationHistory",
+    "label": "Create table \"ClassificationHistory\"",
+    "summary": "Creates table \"ClassificationHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "ClassificationHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"ClassificationHistory\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"ClassificationHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"ClassificationHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"ClassificationHistory\"",
+        "sql": "CREATE TABLE \"public\".\"ClassificationHistory\" (\n  \"confidence\" \"ConfidenceCategory\" NOT NULL,\n  \"evidence\" jsonb NOT NULL,\n  \"id\" text NOT NULL,\n  \"method\" text NOT NULL,\n  \"reason\" text,\n  \"reviewedAt\" timestamp(3) DEFAULT (now()) NOT NULL,\n  \"reviewedBy\" text NOT NULL,\n  \"victimId\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"ClassificationHistory\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"ClassificationHistory\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"ClassificationHistory\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.DuplicateMatch",
+    "label": "Create table \"DuplicateMatch\"",
+    "summary": "Creates table \"DuplicateMatch\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "DuplicateMatch"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"DuplicateMatch\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DuplicateMatch\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"DuplicateMatch\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"DuplicateMatch\"",
+        "sql": "CREATE TABLE \"public\".\"DuplicateMatch\" (\n  \"candidateVictimId\" text NOT NULL,\n  \"classification\" \"DuplicateStatus\" NOT NULL,\n  \"createdAt\" timestamp(3) DEFAULT (now()) NOT NULL,\n  \"explanation\" jsonb NOT NULL,\n  \"id\" text NOT NULL,\n  \"primaryVictimId\" text NOT NULL,\n  \"resolution\" text,\n  \"reviewedAt\" timestamp(3),\n  \"reviewedBy\" text,\n  \"similarityScore\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"DuplicateMatch\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"DuplicateMatch\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"DuplicateMatch\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.GicsTaxonomy",
+    "label": "Create table \"GicsTaxonomy\"",
+    "summary": "Creates table \"GicsTaxonomy\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "GicsTaxonomy"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"GicsTaxonomy\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GicsTaxonomy\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"GicsTaxonomy\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"GicsTaxonomy\"",
+        "sql": "CREATE TABLE \"public\".\"GicsTaxonomy\" (\n  \"industryCode\" text NOT NULL,\n  \"industryGroupCode\" text NOT NULL,\n  \"industryGroupName\" text NOT NULL,\n  \"industryName\" text NOT NULL,\n  \"sectorCode\" text NOT NULL,\n  \"sectorName\" text NOT NULL,\n  \"subIndustryCode\" text NOT NULL,\n  \"subIndustryName\" text NOT NULL,\n  PRIMARY KEY (\"subIndustryCode\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"GicsTaxonomy\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"GicsTaxonomy\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"GicsTaxonomy\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.IngestionLease",
+    "label": "Create table \"IngestionLease\"",
+    "summary": "Creates table \"IngestionLease\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "IngestionLease"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"IngestionLease\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionLease\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"IngestionLease\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"IngestionLease\"",
+        "sql": "CREATE TABLE \"public\".\"IngestionLease\" (\n  \"expiresAt\" timestamp(3) NOT NULL,\n  \"ownerToken\" text NOT NULL,\n  \"sourceName\" text NOT NULL,\n  \"updatedAt\" timestamp(3) NOT NULL,\n  PRIMARY KEY (\"sourceName\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"IngestionLease\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionLease\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"IngestionLease\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.IngestionRun",
+    "label": "Create table \"IngestionRun\"",
+    "summary": "Creates table \"IngestionRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "IngestionRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"IngestionRun\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionRun\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"IngestionRun\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"IngestionRun\"",
+        "sql": "CREATE TABLE \"public\".\"IngestionRun\" (\n  \"completedAt\" timestamp(3),\n  \"errorCount\" int4 DEFAULT 0 NOT NULL,\n  \"errors\" jsonb DEFAULT '[]'::jsonb NOT NULL,\n  \"id\" text NOT NULL,\n  \"metadata\" jsonb DEFAULT '{}'::jsonb NOT NULL,\n  \"recordsCreated\" int4 DEFAULT 0 NOT NULL,\n  \"recordsRead\" int4 DEFAULT 0 NOT NULL,\n  \"recordsUpdated\" int4 DEFAULT 0 NOT NULL,\n  \"sourceName\" text NOT NULL,\n  \"startedAt\" timestamp(3) DEFAULT (now()) NOT NULL,\n  \"status\" \"IngestionStatus\" NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"IngestionRun\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionRun\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"IngestionRun\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.RansomwareGroup",
+    "label": "Create table \"RansomwareGroup\"",
+    "summary": "Creates table \"RansomwareGroup\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "RansomwareGroup"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"RansomwareGroup\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RansomwareGroup\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"RansomwareGroup\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"RansomwareGroup\"",
+        "sql": "CREATE TABLE \"public\".\"RansomwareGroup\" (\n  \"aliases\" text[],\n  \"contactEmails\" text[] DEFAULT '{}',\n  \"createdAt\" timestamp(3) DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"firstObserved\" timestamp(3),\n  \"id\" text NOT NULL,\n  \"knownLocations\" jsonb DEFAULT '[]'::jsonb NOT NULL,\n  \"lastObserved\" timestamp(3),\n  \"leakSiteUrls\" text[],\n  \"name\" text NOT NULL,\n  \"operationalStatus\" text DEFAULT 'UNKNOWN' NOT NULL,\n  \"parserStatus\" text,\n  \"profileUpdatedAt\" timestamp(3),\n  \"profileUrls\" jsonb DEFAULT '{}'::jsonb NOT NULL,\n  \"relationships\" jsonb DEFAULT '[]'::jsonb NOT NULL,\n  \"sessionIds\" text[] DEFAULT '{}',\n  \"sourceRefs\" jsonb DEFAULT '[]'::jsonb NOT NULL,\n  \"updatedAt\" timestamp(3) NOT NULL,\n  \"uptime30d\" int4,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"RansomwareGroup\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"RansomwareGroup\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"RansomwareGroup\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.SourceDisclosure",
+    "label": "Create table \"SourceDisclosure\"",
+    "summary": "Creates table \"SourceDisclosure\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "SourceDisclosure"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"SourceDisclosure\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"SourceDisclosure\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"SourceDisclosure\"",
+        "sql": "CREATE TABLE \"public\".\"SourceDisclosure\" (\n  \"canonicalVictimId\" text,\n  \"id\" text NOT NULL,\n  \"normalizedData\" jsonb DEFAULT '{}'::jsonb NOT NULL,\n  \"originalCountry\" text,\n  \"originalGroupName\" text,\n  \"originalIndustry\" text,\n  \"originalVictimName\" text NOT NULL,\n  \"publishedAt\" timestamp(3),\n  \"ransomwareGroupId\" text,\n  \"rawData\" jsonb NOT NULL,\n  \"retrievedAt\" timestamp(3) DEFAULT (now()) NOT NULL,\n  \"sourceIdentifier\" text,\n  \"sourceName\" text NOT NULL,\n  \"sourceUrl\" text,\n  \"targetedDomain\" text,\n  \"updatedAtSource\" timestamp(3),\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"SourceDisclosure\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"SourceDisclosure\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.VerificationEvidence",
+    "label": "Create table \"VerificationEvidence\"",
+    "summary": "Creates table \"VerificationEvidence\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "VerificationEvidence"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"VerificationEvidence\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"VerificationEvidence\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"VerificationEvidence\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"VerificationEvidence\"",
+        "sql": "CREATE TABLE \"public\".\"VerificationEvidence\" (\n  \"createdBy\" text DEFAULT 'SYSTEM' NOT NULL,\n  \"evidence\" text NOT NULL,\n  \"evidenceType\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"retrievedAt\" timestamp(3) DEFAULT (now()) NOT NULL,\n  \"sourceName\" text,\n  \"sourceUrl\" text,\n  \"supports\" bool NOT NULL,\n  \"victimId\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"VerificationEvidence\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"VerificationEvidence\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"VerificationEvidence\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.VictimEdit",
+    "label": "Create table \"VictimEdit\"",
+    "summary": "Creates table \"VictimEdit\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "VictimEdit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"VictimEdit\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"VictimEdit\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"VictimEdit\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"VictimEdit\"",
+        "sql": "CREATE TABLE \"public\".\"VictimEdit\" (\n  \"analyst\" text NOT NULL,\n  \"createdAt\" timestamp(3) DEFAULT (now()) NOT NULL,\n  \"field\" text NOT NULL,\n  \"id\" text NOT NULL,\n  \"newValue\" jsonb NOT NULL,\n  \"oldValue\" jsonb NOT NULL,\n  \"reason\" text,\n  \"victimId\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"VictimEdit\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"VictimEdit\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"VictimEdit\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_countryCode_idx",
+    "label": "Create index \"CanonicalVictim_countryCode_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_countryCode_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_countryCode_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_countryCode_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_countryCode_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_countryCode_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_countryCode_idx\" ON \"public\".\"CanonicalVictim\" (\"countryCode\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_countryCode_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_countryCode_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"countryCode\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_country_idx",
+    "label": "Create index \"CanonicalVictim_country_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_country_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_country_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_country_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_country_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_country_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_country_idx\" ON \"public\".\"CanonicalVictim\" (\"country\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_country_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_country_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"country\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_duplicateStatus_idx",
+    "label": "Create index \"CanonicalVictim_duplicateStatus_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_duplicateStatus_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_duplicateStatus_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_duplicateStatus_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_duplicateStatus_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_duplicateStatus_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_duplicateStatus_idx\" ON \"public\".\"CanonicalVictim\" (\"duplicateStatus\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_duplicateStatus_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_duplicateStatus_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"duplicateStatus\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_firstReportedAt_idx",
+    "label": "Create index \"CanonicalVictim_firstReportedAt_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_firstReportedAt_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_firstReportedAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_firstReportedAt_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_firstReportedAt_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_firstReportedAt_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_firstReportedAt_idx\" ON \"public\".\"CanonicalVictim\" (\"firstReportedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_firstReportedAt_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_firstReportedAt_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"firstReportedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_name_idx",
+    "label": "Create index \"CanonicalVictim_name_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_name_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_name_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_name_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_name_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_name_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_name_idx\" ON \"public\".\"CanonicalVictim\" (\"name\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_name_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_name_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"name\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_normalizedDomain_idx",
+    "label": "Create index \"CanonicalVictim_normalizedDomain_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_normalizedDomain_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_normalizedDomain_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_normalizedDomain_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_normalizedDomain_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_normalizedDomain_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_normalizedDomain_idx\" ON \"public\".\"CanonicalVictim\" (\"normalizedDomain\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_normalizedDomain_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_normalizedDomain_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"normalizedDomain\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_normalizedName_idx",
+    "label": "Create index \"CanonicalVictim_normalizedName_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_normalizedName_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_normalizedName_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_normalizedName_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_normalizedName_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_normalizedName_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_normalizedName_idx\" ON \"public\".\"CanonicalVictim\" (\"normalizedName\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_normalizedName_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_normalizedName_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"normalizedName\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_targetedDomainNormalized_idx",
+    "label": "Create index \"CanonicalVictim_targetedDomainNormalized_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_targetedDomainNormalized_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_targetedDomainNormalized_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_targetedDomainNormalized_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_targetedDomainNormalized_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_targetedDomainNormalized_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_targetedDomainNormalized_idx\" ON \"public\".\"CanonicalVictim\" (\"targetedDomainNormalized\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_targetedDomainNormalized_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_targetedDomainNormalized_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"targetedDomainNormalized\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.CanonicalVictim.CanonicalVictim_verificationStatus_idx",
+    "label": "Create index \"CanonicalVictim_verificationStatus_idx\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "CanonicalVictim_verificationStatus_idx",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"CanonicalVictim_verificationStatus_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_verificationStatus_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"CanonicalVictim_verificationStatus_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"CanonicalVictim_verificationStatus_idx\"",
+        "sql": "CREATE INDEX \"CanonicalVictim_verificationStatus_idx\" ON \"public\".\"CanonicalVictim\" (\"verificationStatus\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"CanonicalVictim_verificationStatus_idx\" exists on \"CanonicalVictim\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"CanonicalVictim_verificationStatus_idx\"",
+          "i",
+          "I",
+          "\"public\".\"CanonicalVictim\"",
+          "btree",
+          "[\"verificationStatus\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DuplicateMatch.DuplicateMatch_classification_idx",
+    "label": "Create index \"DuplicateMatch_classification_idx\" on \"DuplicateMatch\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DuplicateMatch_classification_idx",
+        "table": "DuplicateMatch"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DuplicateMatch_classification_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DuplicateMatch_classification_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DuplicateMatch_classification_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DuplicateMatch_classification_idx\"",
+        "sql": "CREATE INDEX \"DuplicateMatch_classification_idx\" ON \"public\".\"DuplicateMatch\" (\"classification\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DuplicateMatch_classification_idx\" exists on \"DuplicateMatch\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DuplicateMatch_classification_idx\"",
+          "i",
+          "I",
+          "\"public\".\"DuplicateMatch\"",
+          "btree",
+          "[\"classification\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DuplicateMatch.DuplicateMatch_primaryVictimId_candidateVictimId_key",
+    "label": "Create index \"DuplicateMatch_primaryVictimId_candidateVictimId_key\" on \"DuplicateMatch\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DuplicateMatch_primaryVictimId_candidateVictimId_key",
+        "table": "DuplicateMatch"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DuplicateMatch_primaryVictimId_candidateVictimId_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DuplicateMatch_primaryVictimId_candidateVictimId_key\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DuplicateMatch_primaryVictimId_candidateVictimId_key\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DuplicateMatch_primaryVictimId_candidateVictimId_key\"",
+        "sql": "CREATE UNIQUE INDEX \"DuplicateMatch_primaryVictimId_candidateVictimId_key\" ON \"public\".\"DuplicateMatch\" (\"primaryVictimId\", \"candidateVictimId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DuplicateMatch_primaryVictimId_candidateVictimId_key\" exists on \"DuplicateMatch\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND \"i\".\"indisunique\" AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DuplicateMatch_primaryVictimId_candidateVictimId_key\"",
+          "i",
+          "I",
+          "\"public\".\"DuplicateMatch\"",
+          "btree",
+          "[\"primaryVictimId\",\"candidateVictimId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.DuplicateMatch.DuplicateMatch_similarityScore_idx",
+    "label": "Create index \"DuplicateMatch_similarityScore_idx\" on \"DuplicateMatch\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "DuplicateMatch_similarityScore_idx",
+        "table": "DuplicateMatch"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"DuplicateMatch_similarityScore_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"DuplicateMatch_similarityScore_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"DuplicateMatch_similarityScore_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"DuplicateMatch_similarityScore_idx\"",
+        "sql": "CREATE INDEX \"DuplicateMatch_similarityScore_idx\" ON \"public\".\"DuplicateMatch\" (\"similarityScore\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"DuplicateMatch_similarityScore_idx\" exists on \"DuplicateMatch\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"DuplicateMatch_similarityScore_idx\"",
+          "i",
+          "I",
+          "\"public\".\"DuplicateMatch\"",
+          "btree",
+          "[\"similarityScore\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GicsTaxonomy.GicsTaxonomy_industryCode_idx",
+    "label": "Create index \"GicsTaxonomy_industryCode_idx\" on \"GicsTaxonomy\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GicsTaxonomy_industryCode_idx",
+        "table": "GicsTaxonomy"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GicsTaxonomy_industryCode_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GicsTaxonomy_industryCode_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GicsTaxonomy_industryCode_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GicsTaxonomy_industryCode_idx\"",
+        "sql": "CREATE INDEX \"GicsTaxonomy_industryCode_idx\" ON \"public\".\"GicsTaxonomy\" (\"industryCode\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GicsTaxonomy_industryCode_idx\" exists on \"GicsTaxonomy\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GicsTaxonomy_industryCode_idx\"",
+          "i",
+          "I",
+          "\"public\".\"GicsTaxonomy\"",
+          "btree",
+          "[\"industryCode\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GicsTaxonomy.GicsTaxonomy_industryGroupCode_idx",
+    "label": "Create index \"GicsTaxonomy_industryGroupCode_idx\" on \"GicsTaxonomy\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GicsTaxonomy_industryGroupCode_idx",
+        "table": "GicsTaxonomy"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GicsTaxonomy_industryGroupCode_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GicsTaxonomy_industryGroupCode_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GicsTaxonomy_industryGroupCode_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GicsTaxonomy_industryGroupCode_idx\"",
+        "sql": "CREATE INDEX \"GicsTaxonomy_industryGroupCode_idx\" ON \"public\".\"GicsTaxonomy\" (\"industryGroupCode\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GicsTaxonomy_industryGroupCode_idx\" exists on \"GicsTaxonomy\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GicsTaxonomy_industryGroupCode_idx\"",
+          "i",
+          "I",
+          "\"public\".\"GicsTaxonomy\"",
+          "btree",
+          "[\"industryGroupCode\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.GicsTaxonomy.GicsTaxonomy_sectorCode_idx",
+    "label": "Create index \"GicsTaxonomy_sectorCode_idx\" on \"GicsTaxonomy\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "GicsTaxonomy_sectorCode_idx",
+        "table": "GicsTaxonomy"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"GicsTaxonomy_sectorCode_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"GicsTaxonomy_sectorCode_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"GicsTaxonomy_sectorCode_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"GicsTaxonomy_sectorCode_idx\"",
+        "sql": "CREATE INDEX \"GicsTaxonomy_sectorCode_idx\" ON \"public\".\"GicsTaxonomy\" (\"sectorCode\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"GicsTaxonomy_sectorCode_idx\" exists on \"GicsTaxonomy\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"GicsTaxonomy_sectorCode_idx\"",
+          "i",
+          "I",
+          "\"public\".\"GicsTaxonomy\"",
+          "btree",
+          "[\"sectorCode\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IngestionLease.IngestionLease_expiresAt_idx",
+    "label": "Create index \"IngestionLease_expiresAt_idx\" on \"IngestionLease\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IngestionLease_expiresAt_idx",
+        "table": "IngestionLease"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IngestionLease_expiresAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionLease_expiresAt_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IngestionLease_expiresAt_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IngestionLease_expiresAt_idx\"",
+        "sql": "CREATE INDEX \"IngestionLease_expiresAt_idx\" ON \"public\".\"IngestionLease\" (\"expiresAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IngestionLease_expiresAt_idx\" exists on \"IngestionLease\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionLease_expiresAt_idx\"",
+          "i",
+          "I",
+          "\"public\".\"IngestionLease\"",
+          "btree",
+          "[\"expiresAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IngestionRun.IngestionRun_sourceName_startedAt_idx",
+    "label": "Create index \"IngestionRun_sourceName_startedAt_idx\" on \"IngestionRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IngestionRun_sourceName_startedAt_idx",
+        "table": "IngestionRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IngestionRun_sourceName_startedAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionRun_sourceName_startedAt_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IngestionRun_sourceName_startedAt_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IngestionRun_sourceName_startedAt_idx\"",
+        "sql": "CREATE INDEX \"IngestionRun_sourceName_startedAt_idx\" ON \"public\".\"IngestionRun\" (\"sourceName\", \"startedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IngestionRun_sourceName_startedAt_idx\" exists on \"IngestionRun\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionRun_sourceName_startedAt_idx\"",
+          "i",
+          "I",
+          "\"public\".\"IngestionRun\"",
+          "btree",
+          "[\"sourceName\",\"startedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.IngestionRun.IngestionRun_status_idx",
+    "label": "Create index \"IngestionRun_status_idx\" on \"IngestionRun\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "IngestionRun_status_idx",
+        "table": "IngestionRun"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"IngestionRun_status_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionRun_status_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"IngestionRun_status_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"IngestionRun_status_idx\"",
+        "sql": "CREATE INDEX \"IngestionRun_status_idx\" ON \"public\".\"IngestionRun\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"IngestionRun_status_idx\" exists on \"IngestionRun\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"IngestionRun_status_idx\"",
+          "i",
+          "I",
+          "\"public\".\"IngestionRun\"",
+          "btree",
+          "[\"status\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.RansomwareGroup.RansomwareGroup_name_idx",
+    "label": "Create index \"RansomwareGroup_name_idx\" on \"RansomwareGroup\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "RansomwareGroup_name_idx",
+        "table": "RansomwareGroup"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"RansomwareGroup_name_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RansomwareGroup_name_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"RansomwareGroup_name_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"RansomwareGroup_name_idx\"",
+        "sql": "CREATE INDEX \"RansomwareGroup_name_idx\" ON \"public\".\"RansomwareGroup\" (\"name\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"RansomwareGroup_name_idx\" exists on \"RansomwareGroup\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"RansomwareGroup_name_idx\"",
+          "i",
+          "I",
+          "\"public\".\"RansomwareGroup\"",
+          "btree",
+          "[\"name\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.RansomwareGroup.RansomwareGroup_name_key",
+    "label": "Create index \"RansomwareGroup_name_key\" on \"RansomwareGroup\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "RansomwareGroup_name_key",
+        "table": "RansomwareGroup"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"RansomwareGroup_name_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RansomwareGroup_name_key\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"RansomwareGroup_name_key\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"RansomwareGroup_name_key\"",
+        "sql": "CREATE UNIQUE INDEX \"RansomwareGroup_name_key\" ON \"public\".\"RansomwareGroup\" (\"name\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"RansomwareGroup_name_key\" exists on \"RansomwareGroup\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND \"i\".\"indisunique\" AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"RansomwareGroup_name_key\"",
+          "i",
+          "I",
+          "\"public\".\"RansomwareGroup\"",
+          "btree",
+          "[\"name\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SourceDisclosure.SourceDisclosure_canonicalVictimId_idx",
+    "label": "Create index \"SourceDisclosure_canonicalVictimId_idx\" on \"SourceDisclosure\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SourceDisclosure_canonicalVictimId_idx",
+        "table": "SourceDisclosure"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SourceDisclosure_canonicalVictimId_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_canonicalVictimId_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SourceDisclosure_canonicalVictimId_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SourceDisclosure_canonicalVictimId_idx\"",
+        "sql": "CREATE INDEX \"SourceDisclosure_canonicalVictimId_idx\" ON \"public\".\"SourceDisclosure\" (\"canonicalVictimId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SourceDisclosure_canonicalVictimId_idx\" exists on \"SourceDisclosure\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_canonicalVictimId_idx\"",
+          "i",
+          "I",
+          "\"public\".\"SourceDisclosure\"",
+          "btree",
+          "[\"canonicalVictimId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SourceDisclosure.SourceDisclosure_publishedAt_idx",
+    "label": "Create index \"SourceDisclosure_publishedAt_idx\" on \"SourceDisclosure\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SourceDisclosure_publishedAt_idx",
+        "table": "SourceDisclosure"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SourceDisclosure_publishedAt_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_publishedAt_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SourceDisclosure_publishedAt_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SourceDisclosure_publishedAt_idx\"",
+        "sql": "CREATE INDEX \"SourceDisclosure_publishedAt_idx\" ON \"public\".\"SourceDisclosure\" (\"publishedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SourceDisclosure_publishedAt_idx\" exists on \"SourceDisclosure\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_publishedAt_idx\"",
+          "i",
+          "I",
+          "\"public\".\"SourceDisclosure\"",
+          "btree",
+          "[\"publishedAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SourceDisclosure.SourceDisclosure_sourceIdentifier_idx",
+    "label": "Create index \"SourceDisclosure_sourceIdentifier_idx\" on \"SourceDisclosure\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SourceDisclosure_sourceIdentifier_idx",
+        "table": "SourceDisclosure"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SourceDisclosure_sourceIdentifier_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_sourceIdentifier_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SourceDisclosure_sourceIdentifier_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SourceDisclosure_sourceIdentifier_idx\"",
+        "sql": "CREATE INDEX \"SourceDisclosure_sourceIdentifier_idx\" ON \"public\".\"SourceDisclosure\" (\"sourceIdentifier\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SourceDisclosure_sourceIdentifier_idx\" exists on \"SourceDisclosure\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_sourceIdentifier_idx\"",
+          "i",
+          "I",
+          "\"public\".\"SourceDisclosure\"",
+          "btree",
+          "[\"sourceIdentifier\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SourceDisclosure.SourceDisclosure_sourceName_idx",
+    "label": "Create index \"SourceDisclosure_sourceName_idx\" on \"SourceDisclosure\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SourceDisclosure_sourceName_idx",
+        "table": "SourceDisclosure"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SourceDisclosure_sourceName_idx\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_sourceName_idx\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SourceDisclosure_sourceName_idx\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SourceDisclosure_sourceName_idx\"",
+        "sql": "CREATE INDEX \"SourceDisclosure_sourceName_idx\" ON \"public\".\"SourceDisclosure\" (\"sourceName\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SourceDisclosure_sourceName_idx\" exists on \"SourceDisclosure\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_sourceName_idx\"",
+          "i",
+          "I",
+          "\"public\".\"SourceDisclosure\"",
+          "btree",
+          "[\"sourceName\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SourceDisclosure.SourceDisclosure_sourceName_sourceIdentifier_key",
+    "label": "Create index \"SourceDisclosure_sourceName_sourceIdentifier_key\" on \"SourceDisclosure\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SourceDisclosure_sourceName_sourceIdentifier_key",
+        "table": "SourceDisclosure"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SourceDisclosure_sourceName_sourceIdentifier_key\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_sourceName_sourceIdentifier_key\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"SourceDisclosure_sourceName_sourceIdentifier_key\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SourceDisclosure_sourceName_sourceIdentifier_key\"",
+        "sql": "CREATE UNIQUE INDEX \"SourceDisclosure_sourceName_sourceIdentifier_key\" ON \"public\".\"SourceDisclosure\" (\"sourceName\", \"sourceIdentifier\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SourceDisclosure_sourceName_sourceIdentifier_key\" exists on \"SourceDisclosure\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND \"i\".\"indisunique\" AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"SourceDisclosure_sourceName_sourceIdentifier_key\"",
+          "i",
+          "I",
+          "\"public\".\"SourceDisclosure\"",
+          "btree",
+          "[\"sourceName\",\"sourceIdentifier\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.CanonicalVictim.CanonicalVictim_ransomwareGroupId_fkey",
+    "label": "Add foreign key \"CanonicalVictim_ransomwareGroupId_fkey\" on \"CanonicalVictim\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "CanonicalVictim_ransomwareGroupId_fkey",
+        "table": "CanonicalVictim"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"CanonicalVictim_ransomwareGroupId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "CanonicalVictim_ransomwareGroupId_fkey",
+          "public",
+          "\"public\".\"CanonicalVictim\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"CanonicalVictim_ransomwareGroupId_fkey\" on \"CanonicalVictim\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"CanonicalVictim_ransomwareGroupId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"CanonicalVictim\"\nADD CONSTRAINT \"CanonicalVictim_ransomwareGroupId_fkey\"\nFOREIGN KEY (\"ransomwareGroupId\")\nREFERENCES \"public\".\"RansomwareGroup\" (\"id\")\nON DELETE SET NULL\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"CanonicalVictim_ransomwareGroupId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "CanonicalVictim_ransomwareGroupId_fkey",
+          "public",
+          "\"public\".\"CanonicalVictim\"",
+          "f",
+          "[\"ransomwareGroupId\"]",
+          "\"public\".\"RansomwareGroup\"",
+          "[\"id\"]",
+          "n",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.ClassificationHistory.ClassificationHistory_victimId_fkey",
+    "label": "Add foreign key \"ClassificationHistory_victimId_fkey\" on \"ClassificationHistory\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "ClassificationHistory_victimId_fkey",
+        "table": "ClassificationHistory"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"ClassificationHistory_victimId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "ClassificationHistory_victimId_fkey",
+          "public",
+          "\"public\".\"ClassificationHistory\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"ClassificationHistory_victimId_fkey\" on \"ClassificationHistory\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"ClassificationHistory_victimId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"ClassificationHistory\"\nADD CONSTRAINT \"ClassificationHistory_victimId_fkey\"\nFOREIGN KEY (\"victimId\")\nREFERENCES \"public\".\"CanonicalVictim\" (\"id\")\nON DELETE CASCADE\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"ClassificationHistory_victimId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "ClassificationHistory_victimId_fkey",
+          "public",
+          "\"public\".\"ClassificationHistory\"",
+          "f",
+          "[\"victimId\"]",
+          "\"public\".\"CanonicalVictim\"",
+          "[\"id\"]",
+          "c",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.DuplicateMatch.DuplicateMatch_primaryVictimId_fkey",
+    "label": "Add foreign key \"DuplicateMatch_primaryVictimId_fkey\" on \"DuplicateMatch\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "DuplicateMatch_primaryVictimId_fkey",
+        "table": "DuplicateMatch"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"DuplicateMatch_primaryVictimId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "DuplicateMatch_primaryVictimId_fkey",
+          "public",
+          "\"public\".\"DuplicateMatch\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"DuplicateMatch_primaryVictimId_fkey\" on \"DuplicateMatch\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"DuplicateMatch_primaryVictimId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"DuplicateMatch\"\nADD CONSTRAINT \"DuplicateMatch_primaryVictimId_fkey\"\nFOREIGN KEY (\"primaryVictimId\")\nREFERENCES \"public\".\"CanonicalVictim\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"DuplicateMatch_primaryVictimId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "DuplicateMatch_primaryVictimId_fkey",
+          "public",
+          "\"public\".\"DuplicateMatch\"",
+          "f",
+          "[\"primaryVictimId\"]",
+          "\"public\".\"CanonicalVictim\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.DuplicateMatch.DuplicateMatch_candidateVictimId_fkey",
+    "label": "Add foreign key \"DuplicateMatch_candidateVictimId_fkey\" on \"DuplicateMatch\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "DuplicateMatch_candidateVictimId_fkey",
+        "table": "DuplicateMatch"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"DuplicateMatch_candidateVictimId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "DuplicateMatch_candidateVictimId_fkey",
+          "public",
+          "\"public\".\"DuplicateMatch\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"DuplicateMatch_candidateVictimId_fkey\" on \"DuplicateMatch\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"DuplicateMatch_candidateVictimId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"DuplicateMatch\"\nADD CONSTRAINT \"DuplicateMatch_candidateVictimId_fkey\"\nFOREIGN KEY (\"candidateVictimId\")\nREFERENCES \"public\".\"CanonicalVictim\" (\"id\")\nON DELETE RESTRICT\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"DuplicateMatch_candidateVictimId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "DuplicateMatch_candidateVictimId_fkey",
+          "public",
+          "\"public\".\"DuplicateMatch\"",
+          "f",
+          "[\"candidateVictimId\"]",
+          "\"public\".\"CanonicalVictim\"",
+          "[\"id\"]",
+          "r",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.SourceDisclosure.SourceDisclosure_canonicalVictimId_fkey",
+    "label": "Add foreign key \"SourceDisclosure_canonicalVictimId_fkey\" on \"SourceDisclosure\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "SourceDisclosure_canonicalVictimId_fkey",
+        "table": "SourceDisclosure"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"SourceDisclosure_canonicalVictimId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "SourceDisclosure_canonicalVictimId_fkey",
+          "public",
+          "\"public\".\"SourceDisclosure\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"SourceDisclosure_canonicalVictimId_fkey\" on \"SourceDisclosure\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"SourceDisclosure_canonicalVictimId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"SourceDisclosure\"\nADD CONSTRAINT \"SourceDisclosure_canonicalVictimId_fkey\"\nFOREIGN KEY (\"canonicalVictimId\")\nREFERENCES \"public\".\"CanonicalVictim\" (\"id\")\nON DELETE SET NULL\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"SourceDisclosure_canonicalVictimId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "SourceDisclosure_canonicalVictimId_fkey",
+          "public",
+          "\"public\".\"SourceDisclosure\"",
+          "f",
+          "[\"canonicalVictimId\"]",
+          "\"public\".\"CanonicalVictim\"",
+          "[\"id\"]",
+          "n",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.SourceDisclosure.SourceDisclosure_ransomwareGroupId_fkey",
+    "label": "Add foreign key \"SourceDisclosure_ransomwareGroupId_fkey\" on \"SourceDisclosure\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "SourceDisclosure_ransomwareGroupId_fkey",
+        "table": "SourceDisclosure"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"SourceDisclosure_ransomwareGroupId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "SourceDisclosure_ransomwareGroupId_fkey",
+          "public",
+          "\"public\".\"SourceDisclosure\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"SourceDisclosure_ransomwareGroupId_fkey\" on \"SourceDisclosure\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"SourceDisclosure_ransomwareGroupId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"SourceDisclosure\"\nADD CONSTRAINT \"SourceDisclosure_ransomwareGroupId_fkey\"\nFOREIGN KEY (\"ransomwareGroupId\")\nREFERENCES \"public\".\"RansomwareGroup\" (\"id\")\nON DELETE SET NULL\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"SourceDisclosure_ransomwareGroupId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "SourceDisclosure_ransomwareGroupId_fkey",
+          "public",
+          "\"public\".\"SourceDisclosure\"",
+          "f",
+          "[\"ransomwareGroupId\"]",
+          "\"public\".\"RansomwareGroup\"",
+          "[\"id\"]",
+          "n",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.VerificationEvidence.VerificationEvidence_victimId_fkey",
+    "label": "Add foreign key \"VerificationEvidence_victimId_fkey\" on \"VerificationEvidence\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "VerificationEvidence_victimId_fkey",
+        "table": "VerificationEvidence"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"VerificationEvidence_victimId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "VerificationEvidence_victimId_fkey",
+          "public",
+          "\"public\".\"VerificationEvidence\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"VerificationEvidence_victimId_fkey\" on \"VerificationEvidence\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"VerificationEvidence_victimId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"VerificationEvidence\"\nADD CONSTRAINT \"VerificationEvidence_victimId_fkey\"\nFOREIGN KEY (\"victimId\")\nREFERENCES \"public\".\"CanonicalVictim\" (\"id\")\nON DELETE CASCADE\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"VerificationEvidence_victimId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "VerificationEvidence_victimId_fkey",
+          "public",
+          "\"public\".\"VerificationEvidence\"",
+          "f",
+          "[\"victimId\"]",
+          "\"public\".\"CanonicalVictim\"",
+          "[\"id\"]",
+          "c",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.VictimEdit.VictimEdit_victimId_fkey",
+    "label": "Add foreign key \"VictimEdit_victimId_fkey\" on \"VictimEdit\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "VictimEdit_victimId_fkey",
+        "table": "VictimEdit"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"VictimEdit_victimId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "VictimEdit_victimId_fkey",
+          "public",
+          "\"public\".\"VictimEdit\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"VictimEdit_victimId_fkey\" on \"VictimEdit\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"VictimEdit_victimId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"VictimEdit\"\nADD CONSTRAINT \"VictimEdit_victimId_fkey\"\nFOREIGN KEY (\"victimId\")\nREFERENCES \"public\".\"CanonicalVictim\" (\"id\")\nON DELETE CASCADE\nON UPDATE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"VictimEdit_victimId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "VictimEdit_victimId_fkey",
+          "public",
+          "\"public\".\"VictimEdit\"",
+          "f",
+          "[\"victimId\"]",
+          "\"public\".\"CanonicalVictim\"",
+          "[\"id\"]",
+          "c",
+          "c"
+        ]
+      }
+    ]
+  }
+]

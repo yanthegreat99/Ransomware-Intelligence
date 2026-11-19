@@ -1,11 +1,22 @@
-import { PrismaClient } from "@prisma/client";
+import service from "../../service.mjs";
+import type { Client, PostgresContract } from "@prisma/composer-prisma-cloud/orm";
+import type { Contract } from "../prisma/contract-types";
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+/** The Prisma ORM 8 client, wired by the app's Composer service. Call inside pages and route handlers. */
+export function getDb(): Client<PostgresContract<Contract>> {
+  return service.load().db.client;
+}
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-  });
+/** The app's declared input. Call inside pages and route handlers. */
+export function getAppInput() {
+  return service.input();
+}
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+export type Db = ReturnType<typeof getDb>;
+export type AppInput = ReturnType<typeof getAppInput>;
+
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
+export function asJson(value: unknown): Json {
+  return value as Json;
+}

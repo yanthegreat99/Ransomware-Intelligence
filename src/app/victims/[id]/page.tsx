@@ -1,15 +1,18 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
 
 export default async function VictimProfile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   let victim;
   try {
-    victim = await prisma.canonicalVictim.findUnique({
-      where: { id },
-      include: { ransomwareGroup: true, disclosures: true, evidence: true, classifications: true, edits: { orderBy: { createdAt:"desc" } } },
-    });
+    victim = await getDb().orm.public.CanonicalVictim
+      .include("ransomwareGroup")
+      .include("disclosures")
+      .include("evidence")
+      .include("classifications")
+      .include("edits", (edits) => edits.orderBy((edit) => edit.createdAt.desc()))
+      .first({ id });
   } catch {
     notFound();
   }

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
+import { or } from "@prisma/orm-postgres/orm-client";
 
-type VictimListItem = Prisma.CanonicalVictimGetPayload<{ include: { ransomwareGroup: true } }>;
+type VerificationStatus = "VERIFIED" | "PARTIALLY_VERIFIED" | "UNVERIFIED" | "DISPUTED" | "REMOVED" | "UNDER_REVIEW";
 
 export default async function VictimsPage({
   searchParams,
@@ -12,34 +12,59 @@ export default async function VictimsPage({
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? "1"));
   const pageSize = 50;
-  let victims: VictimListItem[] = [];
+  let victims: Array<{
+    id: string;
+    name: string;
+    domain: string | null;
+    country: string | null;
+    firstReportedAt: Date;
+    verificationStatus: string;
+    duplicateStatus: string;
+    ransomwareGroup: { name: string } | null;
+  }> = [];
   let total = 0;
   try {
-    const where: Prisma.CanonicalVictimWhereInput = {
-        ...(params.q ? { OR: [
-          { name: { contains: params.q, mode: "insensitive" as const } },
-          { domain: { contains: params.q, mode: "insensitive" as const } },
-        ] } : {}),
-        ...(params.country ? { country: params.country } : {}),
-        ...(params.verification ? { verificationStatus: params.verification as "VERIFIED" | "PARTIALLY_VERIFIED" | "UNVERIFIED" | "DISPUTED" | "REMOVED" | "UNDER_REVIEW" } : {}),
-        ...(params.group ? { ransomwareGroup: { name: { contains: params.group, mode:"insensitive" as const } } } : {}),
-        ...(params.industry ? { gicsSectorName: params.industry } : {}),
-        ...(params.from || params.to ? { firstReportedAt: {
-          ...(params.from ? { gte: new Date(params.from) } : {}),
-          ...(params.to ? { lte: new Date(`${params.to}T23:59:59.999Z`) } : {}),
-        } } : {}),
-      };
+    const db = getDb();
+    let query = db.orm.public.CanonicalVictim;
+    if (params.q) {
+      query = query.where((victim) =>
+        or(victim.name.ilike(`%${params.q}%`), victim.domain.ilike(`%${params.q}%`)),
+      );
+    }
+    if (params.country) query = query.where({ country: params.country });
+    if (params.verification && ["VERIFIED", "PARTIALLY_VERIFIED", "UNVERIFIED", "DISPUTED", "REMOVED", "UNDER_REVIEW"].includes(params.verification)) {
+      query = query.where((victim) =>
+        victim.verificationStatus.eq(params.verification as VerificationStatus),
+      );
+    }
+    if (params.group) {
+      const groups = await db.orm.public.RansomwareGroup
+        .where((group) => group.name.ilike(`%${params.group}%`))
+        .select("id")
+        .all();
+      query = query.where((victim) =>
+        victim.ransomwareGroupId.in(groups.map((group) => group.id)),
+      );
+    }
+    if (params.industry) query = query.where({ gicsSectorName: params.industry });
+    if (params.from) query = query.where((victim) => victim.firstReportedAt.gte(new Date(params.from!)));
+    if (params.to) query = query.where((victim) => victim.firstReportedAt.lte(new Date(`${params.to}T23:59:59.999Z`)));
     const [resultItems, resultTotal] = await Promise.all([
-      prisma.canonicalVictim.findMany({
-      where,
-      include: { ransomwareGroup: true },
-      orderBy: params.sort === "name" ? { name:"asc" as const } : params.sort === "oldest" ? { firstReportedAt:"asc" as const } : params.sort === "updated" ? { lastUpdatedAt:"desc" as const } : { firstReportedAt:"desc" as const },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      }),
-      prisma.canonicalVictim.count({ where }),
+      query
+        .include("ransomwareGroup")
+        .orderBy(params.sort === "name"
+          ? (victim) => victim.name.asc()
+          : params.sort === "oldest"
+            ? (victim) => victim.firstReportedAt.asc()
+            : params.sort === "updated"
+              ? (victim) => victim.lastUpdatedAt.desc()
+              : (victim) => victim.firstReportedAt.desc())
+        .offset((page - 1) * pageSize)
+        .limit(pageSize)
+        .all(),
+      query.aggregate((aggregate) => ({ total: aggregate.count() })).then((result) => result.total),
     ]);
-    victims = resultItems as VictimListItem[];
+    victims = resultItems;
     total = resultTotal;
   } catch {
     victims = [];

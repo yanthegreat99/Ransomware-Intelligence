@@ -1,5 +1,5 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
+import { or } from "@prisma/orm-postgres/orm-client";
 import { normalizeCountry } from "@/lib/countries";
 import { continentForCountry } from "@/lib/continents";
 
@@ -11,37 +11,29 @@ export default async function CountriesPage({
   searchParams: Promise<{ country?:string; continent?:string; group?:string; industry?:string; verification?:string; year?:string; from?:string; to?:string }>;
 }) {
   const params = await searchParams;
-  const where: Prisma.CanonicalVictimWhereInput = {};
-
-  if (params.verification) {
-    where.verificationStatus = params.verification as Prisma.EnumVerificationStatusFilter;
+  const db = getDb();
+  let query = db.orm.public.CanonicalVictim;
+  const verificationStatuses = ["VERIFIED", "PARTIALLY_VERIFIED", "UNVERIFIED", "DISPUTED", "REMOVED", "UNDER_REVIEW"] as const;
+  if (params.verification && verificationStatuses.includes(params.verification as typeof verificationStatuses[number])) {
+    query = query.where((victim) =>
+      victim.verificationStatus.eq(params.verification as typeof verificationStatuses[number]),
+    );
   }
   if (params.group) {
-    where.ransomwareGroup = { name: { contains: params.group, mode:"insensitive" } };
+    const groups = await db.orm.public.RansomwareGroup
+      .where((group) => group.name.ilike(`%${params.group}%`))
+      .select("id")
+      .all();
+    query = query.where((victim) => victim.ransomwareGroupId.in(groups.map((group) => group.id)));
   }
   if (params.industry) {
-    where.gicsSectorName = { contains: params.industry, mode:"insensitive" };
-  }
-  if (params.year) {
-    const year = Number(params.year);
-    if (Number.isInteger(year)) {
-      where.firstReportedAt = {
-        gte:new Date(`${year}-01-01T00:00:00.000Z`),
-        lt:new Date(`${year+1}-01-01T00:00:00.000Z`),
-      };
-    }
-  }
-  if (params.from || params.to) {
-    where.firstReportedAt = {
-      ...(params.from ? { gte:new Date(`${params.from}T00:00:00.000Z`) } : {}),
-      ...(params.to ? { lte:new Date(`${params.to}T23:59:59.999Z`) } : {}),
-    };
+    query = query.where((victim) => victim.gicsSectorName.ilike(`%${params.industry}%`));
   }
   if (params.country) {
     const normalized = normalizeCountry(params.country);
-    where.OR = normalized
-      ? [{ countryCode:normalized.alpha2 }, { country:normalized.name }]
-      : [{ country:{contains:params.country,mode:"insensitive"} }];
+    query = query.where((victim) => normalized
+      ? or(victim.countryCode.eq(normalized.alpha2), victim.country.eq(normalized.name))
+      : victim.country.ilike(`%${params.country}%`));
   }
   if (params.continent) {
     const continent = params.continent;
@@ -70,7 +62,7 @@ export default async function CountriesPage({
     for (const code of oceaniaCodes) continentByCode.set(code,"Oceania");
     for (const code of antarcticaCodes) continentByCode.set(code,"Antarctica");
     const validCodes=[...continentByCode].filter(([,value])=>value===continent).map(([code])=>code);
-    if (validCodes.length) where.countryCode={ in:validCodes };
+    if (validCodes.length) query = query.where((victim) => victim.countryCode.in(validCodes));
   }
 
   let rows: Array<{ country:string; code:string|null; count:number; continent:string|null }> = [];
@@ -83,30 +75,26 @@ export default async function CountriesPage({
   try {
     const today = new Date();
     today.setUTCHours(0,0,0,0);
+    let dateQuery = query;
+    if (params.year) {
+      const year = Number(params.year);
+      if (Number.isInteger(year)) {
+        dateQuery = dateQuery
+          .where((victim) => victim.firstReportedAt.gte(new Date(`${year}-01-01T00:00:00.000Z`)))
+          .where((victim) => victim.firstReportedAt.lt(new Date(`${year + 1}-01-01T00:00:00.000Z`)));
+      }
+    }
+    if (params.from) dateQuery = dateQuery.where((victim) => victim.firstReportedAt.gte(new Date(`${params.from}T00:00:00.000Z`)));
+    if (params.to) dateQuery = dateQuery.where((victim) => victim.firstReportedAt.lte(new Date(`${params.to}T23:59:59.999Z`)));
+    const count = async (result: PromiseLike<{ total: number }>) => (await result).total;
     const [total, todayCount, countryData, groupData, industryData] = await Promise.all([
-      prisma.canonicalVictim.count({ where }),
-      prisma.canonicalVictim.count({ where:{ ...where, firstReportedAt:{ gte:today } } }),
-      prisma.canonicalVictim.groupBy({
-        by:["countryCode","country"],
-        where:{ ...where, country:{not:null} },
-        _count:{_all:true},
-        orderBy:{_count:{country:"desc"}},
-        take:250,
-      }),
-      prisma.canonicalVictim.groupBy({
-        by:["ransomwareGroupId"],
-        where,
-        _count:{_all:true},
-        orderBy:{_count:{ransomwareGroupId:"desc"}},
-        take:1,
-      }),
-      prisma.canonicalVictim.groupBy({
-        by:["gicsSectorName"],
-        where,
-        _count:{_all:true},
-        orderBy:{_count:{gicsSectorName:"desc"}},
-        take:1,
-      }),
+      count(dateQuery.aggregate((aggregate) => ({ total: aggregate.count() }))),
+      count(query.where((victim) => victim.firstReportedAt.gte(today)).aggregate((aggregate) => ({ total: aggregate.count() }))),
+      dateQuery.where((victim) => victim.country.isNotNull())
+        .groupBy("countryCode", "country")
+        .aggregate((aggregate) => ({ count: aggregate.count() })),
+      dateQuery.groupBy("ransomwareGroupId").aggregate((aggregate) => ({ count: aggregate.count() })),
+      dateQuery.groupBy("gicsSectorName").aggregate((aggregate) => ({ count: aggregate.count() })),
     ]);
     totalVictims = total;
     todayVictims = todayCount;
@@ -119,19 +107,19 @@ export default async function CountriesPage({
       totals.set(normalized.alpha2,{
         country:normalized.name,
         code:normalized.alpha2,
-        count:(existing?.count ?? 0)+(row._count?._all ?? 0),
+        count:(existing?.count ?? 0)+row.count,
         continent:continentForCountry(normalized.alpha2),
       });
     }
     rows = [...totals.values()].sort((a,b)=>b.count-a.count);
     activeCountries = rows.length;
 
-    const groupId = groupData[0]?.ransomwareGroupId;
+    const groupId = groupData.sort((left, right) => right.count - left.count)[0]?.ransomwareGroupId;
     if (groupId) {
-      const group = await prisma.ransomwareGroup.findUnique({ where:{id:groupId}, select:{name:true} });
+      const group = await db.orm.public.RansomwareGroup.select("name").first({ id: groupId });
       topGroup = group?.name ?? "Unknown";
     }
-    topIndustry = industryData[0]?.gicsSectorName ?? "Unclassified";
+    topIndustry = industryData.sort((left, right) => right.count - left.count)[0]?.gicsSectorName ?? "Unclassified";
   } catch {}
 
   const currentParams = new URLSearchParams();

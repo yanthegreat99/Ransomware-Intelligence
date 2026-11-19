@@ -1,8 +1,4 @@
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+import { db } from "./db.mjs";
 
 function normalizeDomain(value) {
   if (!value) return undefined;
@@ -16,9 +12,9 @@ function normalizeDomain(value) {
 }
 
 try {
-  const disclosures = await prisma.sourceDisclosure.findMany({
-    select: { id:true, sourceName:true, targetedDomain:true, rawData:true, normalizedData:true },
-  });
+  const disclosures = await db.orm.public.SourceDisclosure
+    .select("id", "sourceName", "targetedDomain", "rawData", "normalizedData")
+    .all();
   let disclosureCorrections = 0;
   for (const disclosure of disclosures) {
     if (disclosure.targetedDomain) continue;
@@ -35,52 +31,47 @@ try {
       normalized.domain;
     const targetedDomain = normalizeDomain(candidate);
     if (!targetedDomain) continue;
-    await prisma.sourceDisclosure.update({
-      where: { id: disclosure.id },
-      data: { targetedDomain },
-    });
+    await db.orm.public.SourceDisclosure.where({ id: disclosure.id }).update({ targetedDomain });
     disclosureCorrections++;
   }
 
-  const victims = await prisma.canonicalVictim.findMany({
-    select: { id:true, domain:true, description:true, targetedDomain:true, targetedDomainNormalized:true },
-  });
+  const victims = await db.orm.public.CanonicalVictim
+    .select("id", "domain", "description", "targetedDomain", "targetedDomainNormalized")
+    .all();
   let victimCorrections = 0;
   for (const victim of victims) {
     if (victim.targetedDomainNormalized) {
       if (!victim.description) {
-        const disclosure = await prisma.sourceDisclosure.findFirst({
-          where: { canonicalVictimId:victim.id },
-          select: { rawData:true, normalizedData:true },
-        });
+        const disclosure = await db.orm.public.SourceDisclosure
+          .where({ canonicalVictimId: victim.id })
+          .select("rawData", "normalizedData")
+          .first();
         const raw = typeof disclosure?.rawData === "object" && disclosure.rawData !== null ? disclosure.rawData : {};
         const normalized = typeof disclosure?.normalizedData === "object" && disclosure.normalizedData !== null ? disclosure.normalizedData : {};
         const description = String(raw.description ?? normalized.description ?? "").trim();
         if (description) {
-          await prisma.canonicalVictim.update({ where:{id:victim.id}, data:{description} });
+          await db.orm.public.CanonicalVictim.where({ id: victim.id }).update({ description });
           victimCorrections++;
         }
       }
       continue;
     }
-    const disclosure = await prisma.sourceDisclosure.findFirst({
-      where: { canonicalVictimId:victim.id, targetedDomain:{ not:null } },
-      orderBy: [{ sourceName:"asc" }, { publishedAt:"desc" }],
-      select: { targetedDomain:true, rawData:true, normalizedData:true },
-    });
+    const disclosure = await db.orm.public.SourceDisclosure
+      .where({ canonicalVictimId: victim.id })
+      .where((source) => source.targetedDomain.isNotNull())
+      .orderBy([(source) => source.sourceName.asc(), (source) => source.publishedAt.desc()])
+      .select("targetedDomain", "rawData", "normalizedData")
+      .first();
     const targetedDomain = normalizeDomain(disclosure?.targetedDomain ?? victim.domain);
     const raw = typeof disclosure?.rawData === "object" && disclosure.rawData !== null ? disclosure.rawData : {};
     const normalized = typeof disclosure?.normalizedData === "object" && disclosure.normalizedData !== null ? disclosure.normalizedData : {};
     const description = String(raw.description ?? normalized.description ?? victim.description ?? "").trim();
     if (!targetedDomain) continue;
-    await prisma.canonicalVictim.update({
-      where: { id:victim.id },
-      data: {
+    await db.orm.public.CanonicalVictim.where({ id: victim.id }).update({
         domain: victim.domain ?? targetedDomain,
         targetedDomain,
         targetedDomainNormalized: targetedDomain,
         ...(description ? { description } : {}),
-      },
     });
     victimCorrections++;
   }
@@ -92,5 +83,5 @@ try {
     victimCorrections,
   }));
 } finally {
-  await prisma.$disconnect();
+  await db.close();
 }

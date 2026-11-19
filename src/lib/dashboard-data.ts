@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "./prisma";
+import { getDb } from "./prisma";
 import { normalizeCountry } from "./countries";
 import { groupNameKey, normalizeGroupName } from "./group-normalization";
+import { and } from "@prisma/orm-postgres/orm-client";
 
 export type DashboardRange = {
   from: Date;
@@ -86,18 +86,12 @@ export function getDashboardRange(
 }
 
 export async function loadDashboardData(range: DashboardRange): Promise<DashboardData> {
-  const rangeWhere: Prisma.CanonicalVictimWhereInput = {
-    firstReportedAt: { gte: range.from, lte: range.to },
-  };
+  const db = getDb();
+  const count = async (result: PromiseLike<{ total: number }>) => (await result).total;
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   const days = (range.to.getTime() - range.from.getTime()) / 86400000;
   const bucket = days <= 90 ? "day" : days <= 730 ? "week" : "month";
-  const bucketExpression = bucket === "day"
-    ? Prisma.sql`date_trunc('day', "firstReportedAt")`
-    : bucket === "week"
-      ? Prisma.sql`date_trunc('week', "firstReportedAt")`
-      : Prisma.sql`date_trunc('month', "firstReportedAt")`;
 
   const [
     totalVictims,
@@ -124,71 +118,57 @@ export async function loadDashboardData(range: DashboardRange): Promise<Dashboar
     trendRows,
     recentRows,
   ] = await Promise.all([
-    prisma.canonicalVictim.count(),
-    prisma.canonicalVictim.count({ where: rangeWhere }),
-    prisma.canonicalVictim.count({ where: { firstReportedAt: { gte: today } } }),
-    prisma.canonicalVictim.count({ where: { firstReportedAt: { gte: new Date(Date.now() - 7 * 86400000) } } }),
-    prisma.canonicalVictim.count({ where: { firstReportedAt: { gte: new Date(Date.now() - 30 * 86400000) } } }),
-    prisma.ransomwareGroup.count(),
-    prisma.ransomwareGroup.count({ where: { operationalStatus: "ACTIVE" } }),
-    prisma.canonicalVictim.groupBy({ by: ["country"] }),
-    prisma.canonicalVictim.groupBy({ by: ["gicsSectorName"], where: { gicsSectorName: { not: null } } }),
-    prisma.duplicateMatch.count({ where: { classification: "CONFIRMED_DUPLICATE" } }),
-    prisma.duplicateMatch.count({ where: { reviewedAt: null } }),
-    prisma.canonicalVictim.count({ where: { verificationStatus: "UNVERIFIED" } }),
-    prisma.canonicalVictim.count({ where: { verificationStatus: "UNDER_REVIEW" } }),
-    prisma.canonicalVictim.count({ where: { verificationStatus: { in: ["VERIFIED", "PARTIALLY_VERIFIED"] } } }),
-    prisma.canonicalVictim.count({ where: { verificationStatus: "DISPUTED" } }),
-    prisma.canonicalVictim.groupBy({
-      by: ["country"],
-      where: { ...rangeWhere, country: { not: null } },
-      _count: { _all: true },
-      orderBy: { _count: { country: "desc" } },
-    }),
-    prisma.canonicalVictim.groupBy({
-      by: ["gicsSectorName"],
-      where: rangeWhere,
-      _count: { _all: true },
-      orderBy: { _count: { gicsSectorName: "desc" } },
-    }),
-    prisma.canonicalVictim.groupBy({
-      by: ["ransomwareGroupId"],
-      where: rangeWhere,
-      _count: { _all: true },
-      orderBy: { _count: { ransomwareGroupId: "desc" } },
-    }),
-    prisma.sourceDisclosure.count(),
-    prisma.sourceDisclosure.groupBy({
-      by: ["sourceName"],
-      _count: { _all: true },
-      orderBy: { _count: { sourceName: "desc" } },
-    }),
-    prisma.canonicalVictim.groupBy({
-      by: ["verificationStatus"],
-      _count: { _all: true },
-      orderBy: { _count: { verificationStatus: "desc" } },
-    }),
-    prisma.$queryRaw<Array<{ bucket: Date; count: number }>>(Prisma.sql`
-      SELECT ${bucketExpression} AS "bucket", COUNT(*)::int AS "count"
-      FROM "CanonicalVictim"
-      WHERE "firstReportedAt" >= ${range.from} AND "firstReportedAt" <= ${range.to}
-      GROUP BY 1
-      ORDER BY 1
-    `),
-    prisma.canonicalVictim.findMany({
-      where: rangeWhere,
-      select: {
-        id: true,
-        name: true,
-        country: true,
-        firstReportedAt: true,
-        verificationStatus: true,
-        gicsSectorName: true,
-        ransomwareGroup: { select: { name: true } },
-      },
-      orderBy: { firstReportedAt: "desc" },
-      take: 10,
-    }),
+    count(db.orm.public.CanonicalVictim.aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.CanonicalVictim.where((victim) =>
+      and(victim.firstReportedAt.gte(range.from), victim.firstReportedAt.lte(range.to)),
+    ).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.CanonicalVictim.where((victim) => victim.firstReportedAt.gte(today)).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.CanonicalVictim.where((victim) => victim.firstReportedAt.gte(new Date(Date.now() - 7 * 86400000))).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.CanonicalVictim.where((victim) => victim.firstReportedAt.gte(new Date(Date.now() - 30 * 86400000))).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.RansomwareGroup.aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.RansomwareGroup.where({ operationalStatus: "ACTIVE" }).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    db.orm.public.CanonicalVictim.groupBy("country").aggregate((aggregate) => ({ count: aggregate.count() })),
+    db.orm.public.CanonicalVictim.where((victim) => victim.gicsSectorName.isNotNull())
+      .groupBy("gicsSectorName")
+      .aggregate((aggregate) => ({ count: aggregate.count() })),
+    count(db.orm.public.DuplicateMatch.where({ classification: "CONFIRMED_DUPLICATE" }).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.DuplicateMatch.where((match) => match.reviewedAt.isNull()).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.CanonicalVictim.where({ verificationStatus: "UNVERIFIED" }).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.CanonicalVictim.where({ verificationStatus: "UNDER_REVIEW" }).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.CanonicalVictim.where((victim) => victim.verificationStatus.in(["VERIFIED", "PARTIALLY_VERIFIED"])).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    count(db.orm.public.CanonicalVictim.where({ verificationStatus: "DISPUTED" }).aggregate((aggregate) => ({ total: aggregate.count() }))),
+    db.orm.public.CanonicalVictim.where((victim) =>
+      and(victim.firstReportedAt.gte(range.from), victim.firstReportedAt.lte(range.to)),
+    )
+      .where((victim) => victim.country.isNotNull())
+      .groupBy("country")
+      .aggregate((aggregate) => ({ count: aggregate.count() })),
+    db.orm.public.CanonicalVictim.where((victim) =>
+      and(victim.firstReportedAt.gte(range.from), victim.firstReportedAt.lte(range.to)),
+    )
+      .groupBy("gicsSectorName")
+      .aggregate((aggregate) => ({ count: aggregate.count() })),
+    db.orm.public.CanonicalVictim.where((victim) =>
+      and(victim.firstReportedAt.gte(range.from), victim.firstReportedAt.lte(range.to)),
+    )
+      .groupBy("ransomwareGroupId")
+      .aggregate((aggregate) => ({ count: aggregate.count() })),
+    count(db.orm.public.SourceDisclosure.aggregate((aggregate) => ({ total: aggregate.count() }))),
+    db.orm.public.SourceDisclosure.groupBy("sourceName").aggregate((aggregate) => ({ count: aggregate.count() })),
+    db.orm.public.CanonicalVictim.groupBy("verificationStatus").aggregate((aggregate) => ({ count: aggregate.count() })),
+    db.orm.public.CanonicalVictim.where((victim) =>
+      and(victim.firstReportedAt.gte(range.from), victim.firstReportedAt.lte(range.to)),
+    )
+      .groupBy("firstReportedAt")
+      .aggregate((aggregate) => ({ count: aggregate.count() })),
+    db.orm.public.CanonicalVictim.where((victim) =>
+      and(victim.firstReportedAt.gte(range.from), victim.firstReportedAt.lte(range.to)),
+    )
+      .include("ransomwareGroup", (group) => group.select("name"))
+      .select("id", "name", "country", "firstReportedAt", "verificationStatus", "gicsSectorName")
+      .orderBy((victim) => victim.firstReportedAt.desc())
+      .limit(10)
+      .all(),
   ]);
 
   const countryCodes = new Set<string>();
@@ -200,10 +180,9 @@ export async function loadDashboardData(range: DashboardRange): Promise<Dashboar
   const groupIds = groupRows
     .map((row) => row.ransomwareGroupId)
     .filter((id): id is string => Boolean(id));
-  const groups = await prisma.ransomwareGroup.findMany({
-    where: { id: { in: groupIds } },
-    select: { id: true, name: true },
-  });
+  const groups = groupIds.length
+    ? await db.orm.public.RansomwareGroup.where((group) => group.id.in(groupIds)).select("id", "name").all()
+    : [];
   const groupNames = new Map(groups.map((group) => [group.id, group.name]));
   const countries = new Map<string, DashboardChartRow>();
   for (const row of countryRows) {
@@ -212,7 +191,7 @@ export async function loadDashboardData(range: DashboardRange): Promise<Dashboar
     const current = countries.get(country.alpha2);
     countries.set(country.alpha2, {
       name: country.name,
-      value: (current?.value ?? 0) + row._count._all,
+      value: (current?.value ?? 0) + row.count,
     });
   }
 
@@ -222,13 +201,13 @@ export async function loadDashboardData(range: DashboardRange): Promise<Dashboar
     const name = normalizeGroupName(rawName) ?? "Unknown";
     const key = groupNameKey(name) || "unknown";
     const current = actors.get(key);
-    actors.set(key, { name, value: (current?.value ?? 0) + row._count._all });
+    actors.set(key, { name, value: (current?.value ?? 0) + row.count });
   }
 
   const sourceRows = sourceDisclosureRows.map((row) => ({
     name: row.sourceName,
-    value: row._count._all,
-  }));
+    value: row.count,
+  })).sort((left, right) => right.value - left.value);
   const verificationLabels: Record<string, string> = {
     VERIFIED: "Verified",
     PARTIALLY_VERIFIED: "Partially verified",
@@ -265,20 +244,30 @@ export async function loadDashboardData(range: DashboardRange): Promise<Dashboar
       disputed,
     },
     charts: {
-      trend: trendRows.map((row) => ({
-        date: row.bucket.toISOString(),
-        count: row.count,
-      })),
+      trend: (() => {
+        const totals = new Map<string, number>();
+        for (const row of trendRows) {
+          const date = new Date(row.firstReportedAt);
+          date.setUTCHours(0, 0, 0, 0);
+          if (bucket === "week") date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+          if (bucket === "month") date.setUTCDate(1);
+          const key = date.toISOString();
+          totals.set(key, (totals.get(key) ?? 0) + row.count);
+        }
+        return [...totals].sort(([left], [right]) => left.localeCompare(right))
+          .map(([date, count]) => ({ date, count }));
+      })(),
       countries: [...countries.values()].sort((left, right) => right.value - left.value).slice(0, 10),
       industries: industryRows
-        .map((row) => ({ name: row.gicsSectorName ?? "Unclassified", value: row._count._all }))
+        .map((row) => ({ name: row.gicsSectorName ?? "Unclassified", value: row.count }))
+        .sort((left, right) => right.value - left.value)
         .slice(0, 8),
       groups: [...actors.values()].sort((left, right) => right.value - left.value).slice(0, 10),
       sources: sourceRows,
       verification: verificationRows.map((row) => ({
         name: verificationLabels[row.verificationStatus] ?? row.verificationStatus,
-        value: row._count._all,
-      })),
+        value: row.count,
+      })).sort((left, right) => right.value - left.value),
     },
     recentVictims: recentRows.map((victim) => ({
       id: victim.id,

@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "./prisma";
+import { asJson, getDb } from "./prisma";
+import { and, or } from "@prisma/orm-postgres/orm-client";
 import { normalizeDomain, normalizeName, similarityScore, hasDistinctOrganisationRoots } from "./intelligence";
 import { createHash, randomUUID } from "node:crypto";
-import { SourceAdapter } from "./source-adapter";
+import type { SourceAdapter } from "./source-adapter";
 import { normalizeCountry } from "./countries";
 import { groupNameKey, normalizeGroupName } from "./group-normalization";
 import { appendSourceDisclosureHistory } from "./source-history";
@@ -19,28 +19,35 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value) ?? "null";
 }
 
+function isUniqueViolation(error: unknown): boolean {
+  let current = error;
+  while (typeof current === "object" && current !== null) {
+    const details = current as { sqlState?: unknown; cause?: unknown };
+    if (details.sqlState === "23505") return true;
+    current = details.cause;
+  }
+  return false;
+}
+
 export async function ingestAdapter(adapter: SourceAdapter) {
+  const db = getDb();
   const ownerToken = randomUUID();
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
-  await prisma.ingestionLease.deleteMany({
-    where: { expiresAt: { lt: new Date() } },
-  });
+  await db.orm.public.IngestionLease
+    .where((lease) => lease.expiresAt.lt(new Date()))
+    .deleteAll();
   let leaseCreated = false;
   try {
-    await prisma.ingestionLease.create({
-      data: { sourceName: adapter.name, ownerToken, expiresAt },
-    });
+    await db.orm.public.IngestionLease.create({ sourceName: adapter.name, ownerToken, expiresAt });
     leaseCreated = true;
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    if (isUniqueViolation(error)) {
       return null;
     }
     throw error;
   }
 
-  const run = await prisma.ingestionRun.create({
-    data: { sourceName: adapter.name, status: "RUNNING" },
-  });
+  const run = await db.orm.public.IngestionRun.create({ sourceName: adapter.name, status: "RUNNING" });
 
   let recordsRead = 0;
   let recordsCreated = 0;
@@ -73,9 +80,9 @@ export async function ingestAdapter(adapter: SourceAdapter) {
       rejectedRecords: 0,
       warnings: [],
     };
-    const persistedGroups = await prisma.ransomwareGroup.findMany({
-      select: { id: true, name: true, firstObserved: true, lastObserved: true },
-    });
+    const persistedGroups = await db.orm.public.RansomwareGroup
+      .select("id", "name", "firstObserved", "lastObserved")
+      .all();
     for (const persisted of persistedGroups) {
       groupCache.set(groupNameKey(persisted.name), {
         ...persisted,
@@ -98,16 +105,11 @@ export async function ingestAdapter(adapter: SourceAdapter) {
         else seenIdentifiers.add(identifierKey);
 
         const { rawData, ...normalizedRecord } = record;
-        const normalizedData = JSON.parse(JSON.stringify(normalizedRecord)) as Prisma.InputJsonValue;
-        const originalData = JSON.parse(JSON.stringify(rawData ?? normalizedRecord)) as Prisma.InputJsonValue;
-        const existingDisclosure = await prisma.sourceDisclosure.findUnique({
-          where: {
-            sourceName_sourceIdentifier: {
-              sourceName: record.sourceName,
-              sourceIdentifier: record.sourceIdentifier,
-            },
-          },
-        });
+        const normalizedData = asJson(JSON.parse(JSON.stringify(normalizedRecord)));
+        const originalData = asJson(JSON.parse(JSON.stringify(rawData ?? normalizedRecord)));
+        const existingDisclosure = await db.orm.public.SourceDisclosure
+          .where({ sourceName: record.sourceName, sourceIdentifier: record.sourceIdentifier })
+          .first();
 
         let groupId: string | undefined;
         if (record.groupName) {
@@ -115,21 +117,23 @@ export async function ingestAdapter(adapter: SourceAdapter) {
           const normalizedGroupKey = groupNameKey(normalizedGroupName);
           let group = groupCache.get(normalizedGroupKey);
           if (!group) {
-            const persisted = await prisma.ransomwareGroup.upsert({
-              where: { name: normalizedGroupName },
-              update: {},
+            const persisted = await db.orm.public.RansomwareGroup.upsert({
               create: {
                 name: normalizedGroupName,
                 firstObserved: record.publishedAt,
                 lastObserved: record.publishedAt,
               },
-              select: { id: true, firstObserved: true, lastObserved: true },
+              update: {},
+              conflictOn: { name: normalizedGroupName },
             });
             group = {
-              ...persisted,
+              id: persisted.id,
+              firstObserved: persisted.firstObserved,
+              lastObserved: persisted.lastObserved,
               persistedFirstObserved: persisted.firstObserved,
               persistedLastObserved: persisted.lastObserved,
             };
+            groupCache.set(normalizedGroupKey, group);
           }
           if (record.publishedAt) {
             group.firstObserved = !group.firstObserved || record.publishedAt < group.firstObserved
@@ -147,18 +151,15 @@ export async function ingestAdapter(adapter: SourceAdapter) {
         const normalizedDomain = normalizeDomain(record.domain);
         const targetedDomain = normalizeDomain(record.targetedDomain) ?? normalizedDomain;
         const country = normalizeCountry(record.country);
-        let victim = await prisma.canonicalVictim.findFirst({
-          where: {
-            OR: [
-              { normalizedName },
-              ...(normalizedDomain ? [{ normalizedDomain }] : []),
-            ],
-          },
-        });
+        const victimQuery = db.orm.public.CanonicalVictim.where((victim) =>
+          normalizedDomain
+            ? or(victim.normalizedName.eq(normalizedName), victim.normalizedDomain.eq(normalizedDomain))
+            : victim.normalizedName.eq(normalizedName),
+        );
+        let victim = await victimQuery.first();
 
         if (!victim) {
-          victim = await prisma.canonicalVictim.create({
-            data: {
+          victim = await db.orm.public.CanonicalVictim.create({
               name: record.victimName,
               normalizedName,
               country: country?.name,
@@ -169,7 +170,6 @@ export async function ingestAdapter(adapter: SourceAdapter) {
               description: record.description,
               ransomwareGroupId: groupId,
               firstReportedAt: record.publishedAt ?? new Date(),
-            },
           });
           recordsCreated++;
         } else {
@@ -177,32 +177,23 @@ export async function ingestAdapter(adapter: SourceAdapter) {
           if (!victim.normalizedDomain) {
             const normalizedDomain = normalizeDomain(record.domain);
             if (normalizedDomain) {
-              await prisma.canonicalVictim.update({
-                where: { id: victim.id },
-                data: { normalizedDomain, domain: normalizedDomain },
-              });
+              await db.orm.public.CanonicalVictim.where({ id: victim.id })
+                .update({ normalizedDomain, domain: normalizedDomain });
             }
           }
           if (country && !victim.countryCode) {
-            await prisma.canonicalVictim.update({
-              where: { id: victim.id },
-              data: { country: country.name, countryCode: country.alpha2 },
-            });
+            await db.orm.public.CanonicalVictim.where({ id: victim.id })
+              .update({ country: country.name, countryCode: country.alpha2 });
           }
           if (targetedDomain && !victim.targetedDomainNormalized) {
-            await prisma.canonicalVictim.update({
-              where: { id: victim.id },
-              data: {
+            await db.orm.public.CanonicalVictim.where({ id: victim.id }).update({
                 targetedDomain,
                 targetedDomainNormalized: targetedDomain,
-              },
             });
           }
           if (record.description && !victim.description) {
-            await prisma.canonicalVictim.update({
-              where: { id: victim.id },
-              data: { description: record.description },
-            });
+            await db.orm.public.CanonicalVictim.where({ id: victim.id })
+              .update({ description: record.description });
           }
         }
 
@@ -218,10 +209,8 @@ export async function ingestAdapter(adapter: SourceAdapter) {
             existingDisclosure.targetedDomain !== nextTargetedDomain ||
             existingDisclosure.updatedAtSource?.getTime() !== nextUpdatedAtSource?.getTime();
           if (changed) {
-            await prisma.sourceDisclosure.update({
-              where: { id: existingDisclosure.id },
-              data: {
-                rawData: appendSourceDisclosureHistory(existingDisclosure.rawData, {
+            await db.orm.public.SourceDisclosure.where({ id: existingDisclosure.id }).update({
+                rawData: asJson(appendSourceDisclosureHistory(existingDisclosure.rawData, {
                   sourceName: existingDisclosure.sourceName,
                   sourceIdentifier: existingDisclosure.sourceIdentifier,
                   sourceUrl: existingDisclosure.sourceUrl,
@@ -231,19 +220,17 @@ export async function ingestAdapter(adapter: SourceAdapter) {
                   targetedDomain: existingDisclosure.targetedDomain,
                   canonicalVictimId: existingDisclosure.canonicalVictimId,
                   ransomwareGroupId: existingDisclosure.ransomwareGroupId,
-                }) as Prisma.InputJsonValue,
+                })),
                 updatedAtSource: nextUpdatedAtSource,
                 normalizedData,
                 canonicalVictimId: victim.id,
                 ransomwareGroupId: nextGroupId,
                 targetedDomain: nextTargetedDomain,
-              },
             });
             updatedDisclosures++;
           }
         } else {
-          await prisma.sourceDisclosure.create({
-            data: {
+          await db.orm.public.SourceDisclosure.create({
               sourceName: record.sourceName,
               sourceIdentifier: record.sourceIdentifier,
               sourceUrl: record.sourceUrl,
@@ -258,7 +245,6 @@ export async function ingestAdapter(adapter: SourceAdapter) {
               normalizedData,
               canonicalVictimId: victim.id,
               ransomwareGroupId: groupId,
-            },
           });
           newDisclosures++;
         }
@@ -272,12 +258,9 @@ export async function ingestAdapter(adapter: SourceAdapter) {
       const firstChanged = group.firstObserved?.getTime() !== group.persistedFirstObserved?.getTime();
       const lastChanged = group.lastObserved?.getTime() !== group.persistedLastObserved?.getTime();
       if (!firstChanged && !lastChanged) continue;
-      await prisma.ransomwareGroup.update({
-        where: { id: group.id },
-        data: {
+      await db.orm.public.RansomwareGroup.where({ id: group.id }).update({
           firstObserved: group.firstObserved,
           lastObserved: group.lastObserved,
-        },
       });
     }
   } catch (error) {
@@ -288,9 +271,7 @@ export async function ingestAdapter(adapter: SourceAdapter) {
   const allRejectedRecords = adapterStats.rejectedRecords + rejectedRecords;
   const hasWarnings = adapterStats.warnings.length > 0;
   const hasProblems = errors.length > 0 || allRejectedRecords > 0 || hasWarnings;
-  const completedRun = await prisma.ingestionRun.update({
-    where: { id: run.id },
-    data: {
+  const completedRun = await db.orm.public.IngestionRun.where({ id: run.id }).update({
       status: hasProblems
         ? (recordsRead || adapterStats.recordsRetrieved ? "PARTIAL" : "FAILED")
         : "SUCCESS",
@@ -300,7 +281,7 @@ export async function ingestAdapter(adapter: SourceAdapter) {
       recordsUpdated,
       errorCount: errors.length,
       errors,
-      metadata: {
+      metadata: asJson({
         reconciliation: {
           recordsRetrieved: adapterStats.recordsRetrieved || recordsRead,
           normalizedRecords: recordsRead,
@@ -314,39 +295,37 @@ export async function ingestAdapter(adapter: SourceAdapter) {
           ingestionErrors: errors.length,
           warnings: adapterStats.warnings,
         },
-      },
-    },
+      }),
   });
   if (leaseCreated) {
-    await prisma.ingestionLease.deleteMany({
-      where: { sourceName: adapter.name, ownerToken },
-    });
+    await db.orm.public.IngestionLease.where({ sourceName: adapter.name, ownerToken }).deleteAll();
   }
   return completedRun;
 }
 
 export async function detectDuplicates(victimId: string) {
-  const victim = await prisma.canonicalVictim.findUnique({ where: { id: victimId } });
+  const db = getDb();
+  const victim = await db.orm.public.CanonicalVictim.first({ id: victimId });
   if (!victim) return [];
 
-  const candidates = await prisma.canonicalVictim.findMany({
-    where: { id: { not: victimId } },
-  });
+  const candidates = await db.orm.public.CanonicalVictim
+    .where((candidate) => candidate.id.neq(victimId))
+    .all();
   const matches = [];
 
   for (const candidate of candidates) {
     const nameScore = similarityScore(victim.name, candidate.name);
-    const aliasMatch = candidate.aliases.some((alias) =>
-      normalizeName(alias) === victim.normalizedName,
-    ) || victim.aliases.some((alias) =>
-      normalizeName(alias) === candidate.normalizedName,
+    const aliasMatch = (candidate.aliases ?? []).some((alias) =>
+      typeof alias === "string" && normalizeName(alias) === victim.normalizedName,
+    ) || (victim.aliases ?? []).some((alias) =>
+      typeof alias === "string" && normalizeName(alias) === candidate.normalizedName,
     );
     const domainMatch =
       Boolean(victim.normalizedDomain && candidate.normalizedDomain) &&
       victim.normalizedDomain === candidate.normalizedDomain;
     const [victimSources, candidateSources] = await Promise.all([
-      prisma.sourceDisclosure.findMany({ where: { canonicalVictimId: victim.id }, select: { sourceIdentifier: true, sourceUrl: true } }),
-      prisma.sourceDisclosure.findMany({ where: { canonicalVictimId: candidate.id }, select: { sourceIdentifier: true, sourceUrl: true } }),
+      db.orm.public.SourceDisclosure.where({ canonicalVictimId: victim.id }).select("sourceIdentifier", "sourceUrl").all(),
+      db.orm.public.SourceDisclosure.where({ canonicalVictimId: candidate.id }).select("sourceIdentifier", "sourceUrl").all(),
     ]);
     const sourceIdentifierMatch = victimSources.some((source) =>
       Boolean(source.sourceIdentifier) && candidateSources.some((candidateSource) =>
@@ -368,51 +347,38 @@ export async function detectDuplicates(victimId: string) {
     const hasStrongEvidence = domainMatch || sourceIdentifierMatch || sourceUrlMatch;
     const score = hasStrongEvidence ? 100 : aliasMatch ? 95 : nameScore >= 95 ? 90 : nameScore;
     if (score >= 85) {
+      const explanation = asJson({
+        nameScore,
+        domainMatch,
+        aliasMatch,
+        sourceIdentifierMatch,
+        sourceUrlMatch,
+        methods: [
+          ...(domainMatch ? ["domain_exact"] : []),
+          ...(aliasMatch ? ["alias_match"] : []),
+          ...(sourceIdentifierMatch ? ["source_identifier_exact"] : []),
+          ...(sourceUrlMatch ? ["source_url_exact"] : []),
+          ...(nameScore >= 85 ? ["normalized_name_fuzzy"] : []),
+        ],
+      });
       matches.push(
-        await prisma.duplicateMatch.upsert({
-          where: {
-            primaryVictimId_candidateVictimId: {
-              primaryVictimId: victim.id,
-              candidateVictimId: candidate.id,
-            },
-          },
+        await db.orm.public.DuplicateMatch
+          .upsert({
           update: {
             classification: score === 100 ? "CONFIRMED_DUPLICATE" : "POTENTIAL_DUPLICATE",
             similarityScore: score,
-            explanation: {
-              nameScore,
-              domainMatch,
-              aliasMatch,
-              sourceIdentifierMatch,
-              sourceUrlMatch,
-              methods: [
-                ...(domainMatch ? ["domain_exact"] : []),
-                ...(aliasMatch ? ["alias_match"] : []),
-                ...(sourceIdentifierMatch ? ["source_identifier_exact"] : []),
-                ...(sourceUrlMatch ? ["source_url_exact"] : []),
-                ...(nameScore >= 85 ? ["normalized_name_fuzzy"] : []),
-              ],
-            },
+            explanation,
+          },
+          conflictOn: {
+            primaryVictimId: victim.id,
+            candidateVictimId: candidate.id,
           },
           create: {
             primaryVictimId: victim.id,
             candidateVictimId: candidate.id,
             classification: score === 100 ? "CONFIRMED_DUPLICATE" : "POTENTIAL_DUPLICATE",
             similarityScore: score,
-            explanation: {
-              nameScore,
-              domainMatch,
-              aliasMatch,
-              sourceIdentifierMatch,
-              sourceUrlMatch,
-              methods: [
-                ...(domainMatch ? ["domain_exact"] : []),
-                ...(aliasMatch ? ["alias_match"] : []),
-                ...(sourceIdentifierMatch ? ["source_identifier_exact"] : []),
-                ...(sourceUrlMatch ? ["source_url_exact"] : []),
-                ...(nameScore >= 85 ? ["normalized_name_fuzzy"] : []),
-              ],
-            },
+            explanation,
           },
         }),
       );
@@ -422,23 +388,14 @@ export async function detectDuplicates(victimId: string) {
 }
 
 export async function detectAllDuplicates() {
-  const victims = await prisma.canonicalVictim.findMany({
-    select: {
-      id: true,
-      name: true,
-      normalizedName: true,
-      normalizedDomain: true,
-      aliases: true,
-    },
-  });
+  const db = getDb();
+  const victims = await db.orm.public.CanonicalVictim
+    .select("id", "name", "normalizedName", "normalizedDomain", "aliases")
+    .all();
 
-  const disclosures = await prisma.sourceDisclosure.findMany({
-    select: {
-      canonicalVictimId: true,
-      sourceIdentifier: true,
-      sourceUrl: true,
-    },
-  });
+  const disclosures = await db.orm.public.SourceDisclosure
+    .select("canonicalVictimId", "sourceIdentifier", "sourceUrl")
+    .all();
   const sourceMap = new Map<string, Array<{ sourceIdentifier: string | null; sourceUrl: string | null }>>();
   for (const disclosure of disclosures) {
     if (!disclosure.canonicalVictimId) continue;
@@ -482,8 +439,8 @@ export async function detectAllDuplicates() {
       const domainMatch = Boolean(primary.normalizedDomain && candidate.normalizedDomain &&
         primary.normalizedDomain === candidate.normalizedDomain);
       const aliasMatch =
-        candidate.aliases.some((alias) => normalizeName(alias) === primary.normalizedName) ||
-        primary.aliases.some((alias) => normalizeName(alias) === candidate.normalizedName);
+        (candidate.aliases ?? []).some((alias) => typeof alias === "string" && normalizeName(alias) === primary.normalizedName) ||
+        (primary.aliases ?? []).some((alias) => typeof alias === "string" && normalizeName(alias) === candidate.normalizedName);
       const primarySources = sourceMap.get(primary.id) ?? [];
       const candidateSources = sourceMap.get(candidate.id) ?? [];
       const sourceUrlMatch = primarySources.some((source) =>
@@ -522,57 +479,42 @@ export async function detectAllDuplicates() {
       const classification = hasStrongEvidence || exactNameMatch
         ? "CONFIRMED_DUPLICATE"
         : "POTENTIAL_DUPLICATE";
-      await prisma.duplicateMatch.upsert({
-        where: {
-          primaryVictimId_candidateVictimId: {
-            primaryVictimId: primary.id,
-            candidateVictimId: candidate.id,
-          },
-        },
+      const explanation = asJson({
+        nameScore,
+        exactNameMatch,
+        domainMatch,
+        aliasMatch,
+        sourceUrlMatch,
+        sourceIdentifierMatch,
+        methods: [
+          ...(exactNameMatch ? ["normalized_name_exact"] : []),
+          ...(domainMatch ? ["domain_exact"] : []),
+          ...(aliasMatch ? ["alias_match"] : []),
+          ...(sourceUrlMatch ? ["source_url_exact"] : []),
+          ...(sourceIdentifierMatch ? ["source_identifier_exact"] : []),
+          ...(nameScore >= 85 ? ["normalized_name_fuzzy"] : []),
+        ],
+      });
+      await db.orm.public.DuplicateMatch
+        .upsert({
         update: {
           classification,
           similarityScore: score,
-          explanation: {
-            nameScore,
-            exactNameMatch,
-            domainMatch,
-            aliasMatch,
-            sourceUrlMatch,
-            sourceIdentifierMatch,
-            methods: [
-              ...(exactNameMatch ? ["normalized_name_exact"] : []),
-              ...(domainMatch ? ["domain_exact"] : []),
-              ...(aliasMatch ? ["alias_match"] : []),
-              ...(sourceUrlMatch ? ["source_url_exact"] : []),
-              ...(sourceIdentifierMatch ? ["source_identifier_exact"] : []),
-              ...(nameScore >= 85 ? ["normalized_name_fuzzy"] : []),
-            ],
-          },
+          explanation,
           reviewedAt: null,
           reviewedBy: null,
           resolution: null,
+        },
+        conflictOn: {
+          primaryVictimId: primary.id,
+          candidateVictimId: candidate.id,
         },
         create: {
           primaryVictimId: primary.id,
           candidateVictimId: candidate.id,
           classification,
           similarityScore: score,
-          explanation: {
-            nameScore,
-            exactNameMatch,
-            domainMatch,
-            aliasMatch,
-            sourceUrlMatch,
-            sourceIdentifierMatch,
-            methods: [
-              ...(exactNameMatch ? ["normalized_name_exact"] : []),
-              ...(domainMatch ? ["domain_exact"] : []),
-              ...(aliasMatch ? ["alias_match"] : []),
-              ...(sourceUrlMatch ? ["source_url_exact"] : []),
-              ...(sourceIdentifierMatch ? ["source_identifier_exact"] : []),
-              ...(nameScore >= 85 ? ["normalized_name_fuzzy"] : []),
-            ],
-          },
+          explanation,
         },
       });
       if (classification === "CONFIRMED_DUPLICATE") confirmed++;
@@ -580,18 +522,16 @@ export async function detectAllDuplicates() {
     }
   }
 
-  await prisma.canonicalVictim.updateMany({
-    where: {
-      duplicateMatches: { some: { classification: "CONFIRMED_DUPLICATE", reviewedAt: null } },
-    },
-    data: { duplicateStatus: "CONFIRMED_DUPLICATE" },
-  });
-  await prisma.canonicalVictim.updateMany({
-    where: {
-      duplicateMatches: { some: { classification: "POTENTIAL_DUPLICATE", reviewedAt: null } },
-    },
-    data: { duplicateStatus: "POTENTIAL_DUPLICATE" },
-  });
+  await db.orm.public.CanonicalVictim.where((victim) =>
+    victim.duplicateMatches.some((match) =>
+      and(match.classification.eq("CONFIRMED_DUPLICATE"), match.reviewedAt.isNull()),
+    ),
+  ).updateAll({ duplicateStatus: "CONFIRMED_DUPLICATE" });
+  await db.orm.public.CanonicalVictim.where((victim) =>
+    victim.duplicateMatches.some((match) =>
+      and(match.classification.eq("POTENTIAL_DUPLICATE"), match.reviewedAt.isNull()),
+    ),
+  ).updateAll({ duplicateStatus: "POTENTIAL_DUPLICATE" });
 
   return {
     victims: victims.length,

@@ -1,21 +1,16 @@
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function IndustriesPage() {
   let rows: Array<{ gicsSectorName: string | null; gicsIndustryGroupName: string | null; gicsIndustryName: string | null; gicsSubIndustryName: string | null; _count: { _all: number } }> = [];
   try {
-    const data = await prisma.canonicalVictim.groupBy({
-      by:["gicsSectorName","gicsIndustryGroupName","gicsIndustryName","gicsSubIndustryName"],
-      _count:{_all:true}, orderBy:{_count:{gicsSectorName:"desc"}}, take:100,
-    });
-    rows = data.map((row) => ({
-      gicsSectorName: row.gicsSectorName,
-      gicsIndustryGroupName: row.gicsIndustryGroupName,
-      gicsIndustryName: row.gicsIndustryName,
-      gicsSubIndustryName: row.gicsSubIndustryName,
-      _count: { _all: row._count?._all ?? 0 },
-    }));
+    const data = await getDb().orm.public.CanonicalVictim
+      .groupBy("gicsSectorName", "gicsIndustryGroupName", "gicsIndustryName", "gicsSubIndustryName")
+      .orderBy((victim) => victim.gicsSectorName.desc())
+      .limit(100)
+      .aggregate((aggregate) => ({ count: aggregate.count() }));
+    rows = data.map((row) => ({ ...row, _count: { _all: row.count } }));
   } catch {}
   return (
     <div className="page directory-page">

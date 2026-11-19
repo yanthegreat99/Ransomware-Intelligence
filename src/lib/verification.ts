@@ -1,19 +1,20 @@
-import { prisma } from "./prisma";
+import { getDb } from "./prisma";
 import { checkOrganisation } from "./organisation-check";
 
 export async function runAutomatedVerification(victimId: string) {
-  const victim = await prisma.canonicalVictim.findUnique({
-    where: { id: victimId },
-    include: { disclosures: true, evidence: true },
-  });
+  const db = getDb();
+  const victim = await db.orm.public.CanonicalVictim
+    .include("disclosures")
+    .include("evidence")
+    .first({ id: victimId });
   if (!victim) return null;
   if (victim.lastCheckedAt && Date.now() - victim.lastCheckedAt.getTime() < 24 * 60 * 60 * 1000) {
     return victim;
   }
 
   const organisation = await checkOrganisation(victim.domain ?? victim.normalizedDomain);
-  await prisma.verificationEvidence.createMany({
-    data: organisation.evidence.map((item) => ({
+  await db.orm.public.VerificationEvidence.createAll(
+    organisation.evidence.map((item) => ({
       victimId,
       sourceUrl: item.sourceUrl,
       sourceName: item.sourceName,
@@ -22,7 +23,7 @@ export async function runAutomatedVerification(victimId: string) {
       supports: item.supports,
       createdBy: "AUTOMATED_SYSTEM",
     })),
-  });
+  );
 
   const sourceNames = new Set(
     victim.disclosures.map((disclosure) => disclosure.sourceName).filter(Boolean),
@@ -40,16 +41,13 @@ export async function runAutomatedVerification(victimId: string) {
     status = "UNDER_REVIEW";
   }
 
-  return prisma.canonicalVictim.update({
-    where: { id: victimId },
-    data: {
-      verificationStatus: status,
-      legitimacyStatus: organisation.dnsActive || organisation.websiteActive
-        ? "LEGITIMATE_ORGANISATION"
-        : victim.legitimacyStatus,
-      incidentStatus,
-      confidenceScore: organisation.websiteActive ? Math.max(victim.confidenceScore, 25) : victim.confidenceScore,
-      lastCheckedAt: organisation.checkedAt,
-    },
+  return db.orm.public.CanonicalVictim.where({ id: victimId }).update({
+    verificationStatus: status,
+    legitimacyStatus: organisation.dnsActive || organisation.websiteActive
+      ? "LEGITIMATE_ORGANISATION"
+      : victim.legitimacyStatus,
+    incidentStatus,
+    confidenceScore: organisation.websiteActive ? Math.max(victim.confidenceScore, 25) : victim.confidenceScore,
+    lastCheckedAt: organisation.checkedAt,
   });
 }

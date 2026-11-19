@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/prisma";
 import ThreatActorProfileActions from "@/components/ThreatActorProfileActions";
 
 export const dynamic = "force-dynamic";
@@ -9,13 +9,14 @@ export default async function GroupProfile({ params }: { params: Promise<{ id: s
   const { id } = await params;
   let group;
   try {
-    group = await prisma.ransomwareGroup.findUnique({
-      where: { id },
-      include: {
-        victims: { orderBy: { firstReportedAt: "desc" }, take: 100 },
-        disclosures: { orderBy: { publishedAt: "desc" }, take: 20 },
-      },
-    });
+    group = await getDb().orm.public.RansomwareGroup
+      .include("victims", (victims) =>
+        victims.orderBy((victim) => victim.firstReportedAt.desc()).limit(100),
+      )
+      .include("disclosures", (disclosures) =>
+        disclosures.orderBy((disclosure) => disclosure.publishedAt.desc()).limit(20),
+      )
+      .first({ id });
   } catch {
     notFound();
   }
@@ -78,7 +79,7 @@ export default async function GroupProfile({ params }: { params: Promise<{ id: s
         <article className="panel">
           <div className="panel-heading"><h2>Actor intelligence</h2></div>
           <div className="quality-row"><span>Parser status</span><strong style={{fontSize:12}}>{group.parserStatus ?? "Not refreshed"}</strong></div>
-          <div className="quality-row"><span>Aliases</span><strong style={{fontSize:12}}>{group.aliases.length ? group.aliases.join(", ") : "None recorded"}</strong></div>
+          <div className="quality-row"><span>Aliases</span><strong style={{fontSize:12}}>{group.aliases?.length ? group.aliases.join(", ") : "None recorded"}</strong></div>
           {profileUrls.ransomwareLook ? (
             <div className="quality-row"><span>External profile</span><a href={profileUrls.ransomwareLook} target="_blank" rel="noreferrer" style={{fontSize:12}}>RansomLook</a></div>
           ) : (

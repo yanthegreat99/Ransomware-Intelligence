@@ -136,20 +136,35 @@ export function createRansomwareLiveUrl(
   return url;
 }
 
+export type IngestionSourceConfig = {
+  ransomLookApiUrl?: string;
+  ransomLookApiKey?: string;
+  ransomLookDays?: string;
+  ransomwareLiveApiUrl?: string;
+  ransomwareLiveProApiUrl?: string;
+  ransomwareLiveApiKey?: string;
+  ransomFeedApiUrl?: string;
+};
+
 export class RansomLookAdapter implements SourceAdapter {
   name = "RansomLook";
   runStats = emptyRunStats();
+  private config: IngestionSourceConfig;
+
+  constructor(config: IngestionSourceConfig = {}) {
+    this.config = config;
+  }
 
   async run(): Promise<NormalizedDisclosure[]> {
     this.runStats = emptyRunStats();
-    const endpoint = process.env.RANSOMLOOK_API_URL;
+    const endpoint = this.config.ransomLookApiUrl;
     if (!endpoint) return [];
 
     const url = new URL(endpoint);
-    url.searchParams.set("days", process.env.RANSOMLOOK_DAYS ?? "3650");
+    url.searchParams.set("days", this.config.ransomLookDays ?? "3650");
     const headers: Record<string, string> = { Accept: "application/json" };
-    if (process.env.RANSOMLOOK_API_KEY) {
-      headers.Authorization = process.env.RANSOMLOOK_API_KEY;
+    if (this.config.ransomLookApiKey) {
+      headers.Authorization = this.config.ransomLookApiKey;
     }
     const response = await fetchWithRetry(url, {
       headers,
@@ -201,18 +216,23 @@ export class RansomLookAdapter implements SourceAdapter {
 export class RansomwareLiveAdapter implements SourceAdapter {
   name = "ransomware.live";
   runStats = emptyRunStats();
+  private config: IngestionSourceConfig;
+
+  constructor(config: IngestionSourceConfig = {}) {
+    this.config = config;
+  }
 
   async run(): Promise<NormalizedDisclosure[]> {
     this.runStats = emptyRunStats();
-    const apiKey = process.env.RANSOMWARELIVE_API_KEY?.trim();
+    const apiKey = this.config.ransomwareLiveApiKey?.trim();
     const all: NormalizedDisclosure[] = [];
     const currentYear = new Date().getUTCFullYear();
     const startYear = 2019;
     const usePro = Boolean(apiKey);
     const configuredEndpoint = (
       usePro
-        ? process.env.RANSOMWARELIVE_PRO_API_URL
-        : process.env.RANSOMWARELIVE_API_URL
+        ? this.config.ransomwareLiveProApiUrl
+        : this.config.ransomwareLiveApiUrl
     )?.trim() || (
       usePro
         ? "https://api-pro.ransomware.live/victims/recent"
@@ -283,10 +303,15 @@ export class RansomwareLiveAdapter implements SourceAdapter {
 export class RansomfeedAdapter implements SourceAdapter {
   name = "Ransomfeed";
   runStats = emptyRunStats();
+  private config: IngestionSourceConfig;
+
+  constructor(config: IngestionSourceConfig = {}) {
+    this.config = config;
+  }
 
   async run(): Promise<NormalizedDisclosure[]> {
     this.runStats = emptyRunStats();
-    const baseUrl = process.env.RANSOMFEED_API_URL ?? "https://api.ransomfeed.it";
+    const baseUrl = this.config.ransomFeedApiUrl ?? "https://api.ransomfeed.it";
     const all: NormalizedDisclosure[] = [];
     const currentYear = new Date().getUTCFullYear();
     for (let year = 2019; year <= currentYear; year++) {
