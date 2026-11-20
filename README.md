@@ -54,7 +54,7 @@ RANSOMWARELIVE_API_KEY=your-token
 
 Never put the token in `NEXT_PUBLIC_*` variables or repository files. For Vercel, add `RANSOMWARELIVE_API_KEY` under Project Settings → Environment Variables for the required environments. The server ingestion route sends it only as the `X-API-KEY` header.
 
-The GitHub Actions workflow should store `INGESTION_URL` and `INGESTION_JOB_SECRET`, not the provider API key. Provider keys remain server-side in Vercel or the deployed backend. Ransomfeed is public and does not require a token; RansomLook public `/posts` access does not require a key, while export endpoints require `RANSOMLOOK_API_KEY`.
+The GitHub Actions workflow should store `INGESTION_URL` and `INGESTION_JOB_SECRET`, not the provider API key. Set `INGESTION_URL` to the deployed app's base URL, and set `INGESTION_JOB_SECRET` to the same value configured in Prisma Composer. The workflow appends `/api/ingest`. Provider keys remain server-side in the deployed backend. Ransomfeed is public and does not require a token; RansomLook public `/posts` access does not require a key, while export endpoints require `RANSOMLOOK_API_KEY`.
 
 ## Analyst operations
 

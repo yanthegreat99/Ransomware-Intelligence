@@ -18,8 +18,24 @@ jobs:
           INGESTION_URL: ${{ secrets.INGESTION_URL }}
           INGESTION_JOB_SECRET: ${{ secrets.INGESTION_JOB_SECRET }}
         run: |
-          test -n "$INGESTION_URL"
+          set -euo pipefail
+          if [[ -z "$INGESTION_URL" ]]; then
+            echo "::error::Set the INGESTION_URL Actions secret to your deployed app URL."
+            exit 1
+          fi
+          if [[ -z "$INGESTION_JOB_SECRET" ]]; then
+            echo "::error::Set the INGESTION_JOB_SECRET Actions secret to the same value configured in Prisma Composer."
+            exit 1
+          fi
+
+          base_url="${INGESTION_URL%/}"
+          if [[ "$base_url" == */api/ingest ]]; then
+            endpoint="$base_url"
+          else
+            endpoint="$base_url/api/ingest"
+          fi
+
           curl --fail-with-body --show-error --retry 3 --retry-delay 30 \
-            -X POST "$INGESTION_URL/api/ingest" \
+            -X POST "$endpoint" \
             -H "Authorization: Bearer $INGESTION_JOB_SECRET" \
             -H "Content-Type: application/json"
