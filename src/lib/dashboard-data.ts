@@ -2,6 +2,7 @@ import { getDb } from "./prisma";
 import { normalizeCountry } from "./countries";
 import { groupNameKey, normalizeGroupName } from "./group-normalization";
 import { and } from "@prisma/orm-postgres/orm-client";
+import { unstable_cache } from "next/cache";
 
 export type DashboardRange = {
   from: Date;
@@ -85,7 +86,7 @@ export function getDashboardRange(
   };
 }
 
-export async function loadDashboardData(range: DashboardRange): Promise<DashboardData> {
+const loadDashboardDataUncached = async (range: DashboardRange): Promise<DashboardData> => {
   const db = getDb();
   const count = async (result: PromiseLike<{ total: number }>) => (await result).total;
   const today = new Date();
@@ -279,4 +280,24 @@ export async function loadDashboardData(range: DashboardRange): Promise<Dashboar
       ransomwareGroupName: normalizeGroupName(victim.ransomwareGroup?.name) ?? null,
     })),
   };
+};
+
+const loadCachedDashboardData = unstable_cache(
+  async (from: string, to: string | null, label: string) =>
+    loadDashboardDataUncached({
+      from: parseDate(from, false),
+      to: to ? parseDate(to, true) : new Date(),
+      label,
+    }),
+  ["public-dashboard-analytics-v1"],
+  { revalidate: 300 },
+);
+
+export async function loadDashboardData(range: DashboardRange): Promise<DashboardData> {
+  const isPresetRange = Object.hasOwn(presetDays, range.label.toLowerCase());
+  return loadCachedDashboardData(
+    range.from.toISOString().slice(0, 10),
+    isPresetRange ? null : range.to.toISOString().slice(0, 10),
+    range.label,
+  );
 }

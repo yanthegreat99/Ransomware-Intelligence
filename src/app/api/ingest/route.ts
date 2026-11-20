@@ -9,13 +9,11 @@ export async function POST(request: NextRequest) {
   const input = getAppInput();
   const jobSecret = input.ingestionJobSecret?.expose();
   const sourceConfig = {
-    ransomLookApiUrl: input.ransomLookApiUrl?.expose(),
-    ransomLookApiKey: input.ransomLookApiKey?.expose(),
-    ransomLookDays: input.ransomLookDays?.expose(),
-    ransomwareLiveApiUrl: input.ransomwareLiveApiUrl?.expose(),
-    ransomwareLiveProApiUrl: input.ransomwareLiveProApiUrl?.expose(),
-    ransomwareLiveApiKey: input.ransomwareLiveApiKey?.expose(),
-    ransomFeedApiUrl: input.ransomFeedApiUrl?.expose(),
+    ransomLookApiUrl: input.ransomLookApiUrl,
+    ransomLookDays: input.ransomLookDays,
+    ransomwareLiveApiUrl: input.ransomwareLiveApiUrl,
+    ransomwareLiveProApiUrl: input.ransomwareLiveProApiUrl,
+    ransomFeedApiUrl: input.ransomFeedApiUrl,
   };
   if ((!jobSecret || request.headers.get("authorization") !== `Bearer ${jobSecret}`) && !authorizeAdminRequest(request)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });

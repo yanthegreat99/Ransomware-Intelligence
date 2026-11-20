@@ -54,7 +54,7 @@ RANSOMWARELIVE_API_KEY=your-token
 
 Never put the token in `NEXT_PUBLIC_*` variables or repository files. For Vercel, add `RANSOMWARELIVE_API_KEY` under Project Settings → Environment Variables for the required environments. The server ingestion route sends it only as the `X-API-KEY` header.
 
-The GitHub Actions workflow should store `INGESTION_URL` and `INGESTION_JOB_SECRET`, not the provider API key. Provider keys remain server-side in Vercel or the deployed backend. Ransomfeed is public and does not require a token; RansomLook public `/posts` access does not require a key, while export endpoints require `RANSOMLOOK_API_KEY`.
+The GitHub Actions workflow should store `INGESTION_URL` and `INGESTION_JOB_SECRET`, not the provider API key. Set `INGESTION_URL` to the deployed app's base URL, and set `INGESTION_JOB_SECRET` to the same value configured in Prisma Composer. The workflow appends `/api/ingest`. Provider keys remain server-side in the deployed backend. Ransomfeed is public and does not require a token; RansomLook public `/posts` access does not require a key, while export endpoints require `RANSOMLOOK_API_KEY`.
 
 ## Analyst operations
 
@@ -116,7 +116,7 @@ The refresh stores associated clearweb/Tor locations, availability, parser statu
 
 Threat-actor aliases are shared by ingestion, analytics, and the normalization script in `src/lib/group-name-aliases.json`. Name keys ignore case, spaces, and punctuation but preserve digits; fuzzy name similarity is not used to merge actors. Preview profile merges with `npm run groups:normalize`; apply a reviewed plan with `npm run groups:normalize -- --apply`. The script reassigns victim/disclosure links, retains source spellings, and snapshots retired group profiles.
 
-The overview separates canonical victim totals from source-disclosure totals. Its date filters apply to victim trends and activity charts, while source coverage and current verification status are labeled as database-wide statistics.
+The overview separates canonical victim totals from source-disclosure totals. Its date filters apply to victim trends and activity charts, while source coverage and current verification status are labeled as database-wide statistics. Public dashboard, country, and industry analytics are cached for five minutes to reduce repeated database reads.
 
 ## Full ingestion and duplicate testing
 

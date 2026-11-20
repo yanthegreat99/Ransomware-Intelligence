@@ -91,7 +91,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         <div>
           <div className="eyebrow">RANSOMWARE INTELLIGENCE</div>
           <h1>Threat activity overview</h1>
-          <p>Canonical victim trends, actor activity, source coverage, and review status.</p>
+          <p>Canonical victim trends, actor activity, source coverage, and review status. Analytics may be up to 5 minutes old.</p>
         </div>
         <div className="actions">
           <Link className="search-button" href="/victims"><Search size={16} /> Search intelligence</Link>
