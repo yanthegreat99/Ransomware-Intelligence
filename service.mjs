@@ -9,13 +9,11 @@ import { contract } from "./src/prisma/contract.mjs";
 const inputSchema = z.object({
   analystAccessSecret: secretString(),
   ingestionJobSecret: secretString().optional(),
-  ransomLookApiUrl: secretString().optional(),
-  ransomLookApiKey: secretString().optional(),
-  ransomLookDays: secretString().optional(),
-  ransomwareLiveApiUrl: secretString().optional(),
-  ransomwareLiveProApiUrl: secretString().optional(),
-  ransomwareLiveApiKey: secretString().optional(),
-  ransomFeedApiUrl: secretString().optional(),
+  ransomLookApiUrl: z.string().optional(),
+  ransomLookDays: z.string().optional(),
+  ransomwareLiveApiUrl: z.string().optional(),
+  ransomwareLiveProApiUrl: z.string().optional(),
+  ransomFeedApiUrl: z.string().optional(),
 });
 
 export default compute({
