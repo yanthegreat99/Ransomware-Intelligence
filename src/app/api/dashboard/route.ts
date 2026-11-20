@@ -18,7 +18,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    return NextResponse.json(await loadDashboardData(range));
+    return NextResponse.json(await loadDashboardData(range), {
+      headers: {
+        "Cache-Control": "public, max-age=0, s-maxage=300",
+      },
+    });
   } catch (error) {
     return NextResponse.json({
       error: "Database unavailable",

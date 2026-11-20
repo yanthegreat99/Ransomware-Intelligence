@@ -85,9 +85,9 @@ The RansomLook adapter is disabled until `RANSOMLOOK_API_URL` is configured. Add
 
 ## Database maintenance workflow
 
-The GitHub Actions `Database maintenance` workflow runs daily at 03:00 UTC and can also be started manually. Add the Prisma PostgreSQL connection string as the repository Actions secret `DATABASE_URL` under Settings → Secrets and variables → Actions. Do not commit the connection string.
+The GitHub Actions `Database maintenance` workflow is manual-only while database usage is being monitored. Start it from Actions → Database maintenance → Run workflow. Add the Prisma PostgreSQL connection string as the repository Actions secret `DATABASE_URL` under Settings → Secrets and variables → Actions. Do not commit the connection string.
 
-The workflow normalizes country values, backfills target domains, seeds GICS taxonomy, and applies ransomware-group merges. Group normalization uses `--apply`, which can merge groups and delete duplicate group rows. Review its logs after each run. Scheduled runs start only after this workflow is merged into the repository's default branch.
+The workflow normalizes country values, backfills target domains, seeds GICS taxonomy, and applies ransomware-group merges. Group normalization uses `--apply`, which can merge groups and delete duplicate group rows. Review its logs after each manual run before re-enabling a schedule.
 
 ## Data integrity
 
@@ -116,7 +116,7 @@ The refresh stores associated clearweb/Tor locations, availability, parser statu
 
 Threat-actor aliases are shared by ingestion, analytics, and the normalization script in `src/lib/group-name-aliases.json`. Name keys ignore case, spaces, and punctuation but preserve digits; fuzzy name similarity is not used to merge actors. Preview profile merges with `npm run groups:normalize`; apply a reviewed plan with `npm run groups:normalize -- --apply`. The script reassigns victim/disclosure links, retains source spellings, and snapshots retired group profiles.
 
-The overview separates canonical victim totals from source-disclosure totals. Its date filters apply to victim trends and activity charts, while source coverage and current verification status are labeled as database-wide statistics.
+The overview separates canonical victim totals from source-disclosure totals. Its date filters apply to victim trends and activity charts, while source coverage and current verification status are labeled as database-wide statistics. Public dashboard, country, and industry analytics are cached for five minutes to reduce repeated database reads.
 
 ## Full ingestion and duplicate testing
 

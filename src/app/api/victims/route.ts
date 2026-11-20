@@ -5,6 +5,7 @@ import { normalizeName } from "@/lib/intelligence";
 import { normalizeCountry } from "@/lib/countries";
 
 type VerificationStatus = "VERIFIED" | "PARTIALLY_VERIFIED" | "UNVERIFIED" | "DISPUTED" | "REMOVED" | "UNDER_REVIEW";
+const publicCacheHeaders = { "Cache-Control": "public, max-age=0, s-maxage=300" };
 
 export async function GET(request: NextRequest) {
   try {
@@ -83,7 +84,11 @@ export async function GET(request: NextRequest) {
         ].map(escape).join(",")),
       ].join("\n");
       return new NextResponse(csv, {
-        headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": 'attachment; filename="victims.csv"' },
+        headers: {
+          ...publicCacheHeaders,
+          "Content-Type": "text/csv; charset=utf-8",
+          "Content-Disposition": 'attachment; filename="victims.csv"',
+        },
       });
     }
     if (searchParams.get("format") === "json") {
@@ -95,11 +100,15 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / pageSize),
       }, {
         headers: {
+          ...publicCacheHeaders,
           "Content-Disposition": 'attachment; filename="victims.json"',
         },
       });
     }
-    return NextResponse.json({ items, page, pageSize, total, pages: Math.ceil(total / pageSize) });
+    return NextResponse.json(
+      { items, page, pageSize, total, pages: Math.ceil(total / pageSize) },
+      { headers: publicCacheHeaders },
+    );
   } catch (error) {
     return NextResponse.json({ error: "Database unavailable", detail: error instanceof Error ? error.message : "Unknown error" }, { status: 503 });
   }
